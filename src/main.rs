@@ -4,7 +4,7 @@ mod parser;
 
 // MIDI Spec:
 // https://www.music.mcgill.ca/~ich/classes/mumt306/StandardMIDIfileformat.html
-// https://www.lim.di.unimi.it/IEEE/MIDI/META.HTM
+// https://www.lim.di.unimi.it/IEEE/MIDI/
 
 fn main() {
     // let path = "Test MIDIs/Megalovania.mid";
