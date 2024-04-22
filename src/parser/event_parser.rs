@@ -251,7 +251,7 @@ fn parse_midi_event_system_common_or_real_time_message_at(data: &[u8], i: &mut u
 
         code => return Err(ParsingError {
             position: *i,
-            message: format!("Midi event code not defined\n{} ({:b})", code, code)
+            message: format!("Midi event code not defined - {} ({:b})", code, code)
         })
 
     }

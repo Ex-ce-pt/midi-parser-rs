@@ -8,7 +8,8 @@ mod parser;
 
 fn main() {
     // let path = "Test MIDIs/Megalovania.mid";
-    let path = "Test MIDIs/Nyan Cat.mid";
+    // let path = "Test MIDIs/Nyan Cat.mid";
+    let path = "Test MIDIs/U.N. Owen was her.mid";
 
     // Open file
     let mut file = match File::open(path) {

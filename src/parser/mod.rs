@@ -148,21 +148,13 @@ fn parse_track_at(data: &[u8], i: &mut usize) -> Result<chunk::Chunk, ParsingErr
             message: format!("Not enough data to read MTrk.length\n{}", e)
         })
     };
-    let track_chunk_length = u32::from_be_bytes(track_chunk_length_raw.try_into().unwrap());
+    let track_chunk_length = u32::from_be_bytes(track_chunk_length_raw.try_into().unwrap()) as usize;
     
-    // Read all the chunk data at once
-    let chunk_data = match read_bytes_at(data, i, track_chunk_length as usize) {
-        Ok(d) => d,
-        Err(e) => return Err(ParsingError {
-            position: *i,
-            message: format!("Not enough data to read a MTrk chunk\n{}", e)
-        })
-    };
-    let mut chunk_data_i: usize = 0;
+    let i_at_chunk_data_start = *i;
     let mut events = Vec::<chunk::TrackEvent>::new();
 
-    while chunk_data_i < chunk_data.len() {
-        let event_maybe = parse_track_event_at(chunk_data, &mut chunk_data_i);
+    while *i < i_at_chunk_data_start + track_chunk_length {
+        let event_maybe = parse_track_event_at(data, i);
         match event_maybe {
             Ok(event) => events.push(event),
             Err(e) => return Err(e)
@@ -184,8 +176,13 @@ pub fn parse_midi_file(data: &[u8]) -> Result<chunk::MidiFile, ParsingError> {
 
     let mut tracks = Vec::<chunk::Chunk>::new();
 
-    tracks.push(parse_track_at(data, &mut i)?);
-    tracks.push(parse_track_at(data, &mut i)?);
+    while i < data.len() {
+        let track_maybe = parse_track_at(data, &mut i);
+        match track_maybe {
+            Ok(trk) => tracks.push(trk),
+            Err(e) => return Err(e)
+        };
+    }
 
     Ok(chunk::MidiFile {
         header,
