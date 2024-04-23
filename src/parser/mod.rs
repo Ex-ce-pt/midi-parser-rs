@@ -8,38 +8,6 @@ use util::*;
 use event_parser::*;
 
 fn parse_header_at(data: &[u8], i: &mut usize) -> Result<chunk::Chunk, ParsingError> {
-
-    // Chunk type
-    let header_chunk_type_raw = match read_bytes_at(data, i, 4) {
-        Ok(t) => t,
-        Err(e) => return Err(ParsingError {
-            position: *i,
-            message: format!("Not enough data to read the type of MThd: {}", e)
-        })
-    };
-    let header_chunk_type = String::from_utf8_lossy(header_chunk_type_raw);
-    if header_chunk_type != "MThd" {
-        return Err(ParsingError {
-            position: *i,
-            message: format!("Header chunk type invalid\nExpected: MThd\nFound: {}", header_chunk_type)
-        });
-    }
-    
-    // Length
-    let header_chunk_length_raw = match read_bytes_at(data, i, 4) {
-        Ok(l) => l,
-        Err(e) => return Err(ParsingError {
-            position: *i,
-            message: format!("Not enough data to read MThd.length\n{}", e)
-        })
-    };
-    let header_chunk_length = u32::from_be_bytes(header_chunk_length_raw.try_into().unwrap());
-    if header_chunk_length != chunk::MTHD_LENGTH {
-        return Err(ParsingError {
-            position: *i,
-            message: format!("The length of the header was not equal the expected one\nExpected: {}B\nFound: {}B", chunk::MTHD_LENGTH, header_chunk_length)
-        });
-    }
     
     // Format
     let midi_file_format_raw = match read_bytes_at(data, i, 2) {
@@ -122,38 +90,12 @@ fn parse_track_event_at(data: &[u8], i: &mut usize) -> Result<chunk::TrackEvent,
     }
 }
 
-fn parse_track_at(data: &[u8], i: &mut usize) -> Result<chunk::Chunk, ParsingError> {
+fn parse_track_at(data: &[u8], i: &mut usize, length: usize) -> Result<chunk::Chunk, ParsingError> {
 
-    // Chunk type
-    let track_chunk_type_raw = match read_bytes_at(data, i, 4) {
-        Ok(t) => t,
-        Err(e) => return Err(ParsingError {
-            position: *i,
-            message: format!("Not enough data to read MTrk.chunk_type\n{}", e)
-        })
-    };
-    let track_chunk_type = String::from_utf8_lossy(track_chunk_type_raw);
-    if track_chunk_type != "MTrk" {
-        return Err(ParsingError {
-            position: *i,
-            message: format!("Track chunk type invalid\nExpected: MTrk\nFound: {}", track_chunk_type)
-        })
-    }
-
-    // Length
-    let track_chunk_length_raw = match read_bytes_at(data, i, 4) {
-        Ok(l) => l,
-        Err(e) => return Err(ParsingError {
-            position: *i,
-            message: format!("Not enough data to read MTrk.length\n{}", e)
-        })
-    };
-    let track_chunk_length = u32::from_be_bytes(track_chunk_length_raw.try_into().unwrap()) as usize;
-    
     let i_at_chunk_data_start = *i;
     let mut events = Vec::<chunk::TrackEvent>::new();
 
-    while *i < i_at_chunk_data_start + track_chunk_length {
+    while *i < i_at_chunk_data_start + length {
         let event_maybe = parse_track_event_at(data, i);
         match event_maybe {
             Ok(event) => events.push(event),
@@ -168,20 +110,54 @@ pub fn parse_midi_file(data: &[u8]) -> Result<chunk::MidiFile, ParsingError> {
     // Iterator
     let mut i: usize = 0;
     
-    // Parsing the header
-    let header = match parse_header_at(data, &mut i) {
-        Ok(h) => h,
-        Err(e) => return Err(e)
-    };
-
+    let mut header: chunk::Chunk = chunk::Chunk::default_header();
     let mut tracks = Vec::<chunk::Chunk>::new();
 
     while i < data.len() {
-        let track_maybe = parse_track_at(data, &mut i);
-        match track_maybe {
-            Ok(trk) => tracks.push(trk),
-            Err(e) => return Err(e)
+        // Chunk type
+        let chunk_type_raw = match read_bytes_at(data, &mut i, 4) {
+            Ok(t) => t,
+            Err(e) => return Err(ParsingError {
+                position: i,
+                message: format!("Not enough data to read MTrk.chunk_type\n{}", e)
+            })
         };
+
+        // Length
+        let chunk_length_raw = match read_bytes_at(data, &mut i, 4) {
+            Ok(l) => l,
+            Err(e) => return Err(ParsingError {
+                position: i,
+                message: format!("Not enough data to read MTrk.length\n{}", e)
+            })
+        };
+        let chunk_length = u32::from_be_bytes(chunk_length_raw.try_into().unwrap()) as usize;
+
+        match chunk_type_raw {
+            b"MThd" => {
+                if chunk_length != chunk::MTHD_LENGTH {
+                    return Err(ParsingError {
+                        position: i,
+                        message: format!("The length of the header was not equal the expected one\nExpected: {}B\nFound: {}B", chunk::MTHD_LENGTH, chunk_length)
+                    });
+                }
+                header = match parse_header_at(data, &mut i) {
+                    Ok(h) => h,
+                    Err(e) => return Err(e)
+                };
+            },
+            b"MTrk" => {
+                let track = match parse_track_at(data, &mut i, chunk_length) {
+                    Ok(trk) => trk,
+                    Err(e) => return Err(e)
+                };
+                tracks.push(track);
+            },
+            _ => {
+                // Ignore unknown chunks, following the documentation.
+                i += chunk_length;
+            }
+        }
     }
 
     Ok(chunk::MidiFile {

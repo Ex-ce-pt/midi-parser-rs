@@ -1,4 +1,4 @@
-pub const MTHD_LENGTH: u32 = 6;
+pub const MTHD_LENGTH: usize = 6;
 
 #[derive(Debug)]
 pub enum MidiFileFormat {
@@ -39,6 +39,16 @@ pub enum Chunk {
     },
     // Track
     MTrk(Vec<TrackEvent>)
+}
+
+impl Chunk {
+    pub fn default_header() -> Self {
+        Self::MThd {
+            format: MidiFileFormat::SingleTrack,
+            number_of_tracks: 1,
+            division: Division::TicksPerQuarterNote(96)
+        }
+    }
 }
 
 #[derive(Debug)]
