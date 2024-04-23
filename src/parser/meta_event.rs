@@ -50,6 +50,12 @@ pub enum MetaEvent {
     },
     SequencerSpecific {
         data: Vec<u8>
+    },
+
+    // A meta-event not defined by the documentation.
+    Alien {
+        code: u8,
+        data: Vec<u8>
     }
 }
 

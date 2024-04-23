@@ -295,6 +295,7 @@ pub fn try_parse_meta_event(data: &[u8], i: &mut usize) -> Option<meta_event::Me
     };
 
     match event_code {
+
         0x00 => {
             if data_length != 2 {
                 return None;
@@ -305,48 +306,56 @@ pub fn try_parse_meta_event(data: &[u8], i: &mut usize) -> Option<meta_event::Me
             *i = i_copy;
             Some(meta_event::MetaEvent::SequenceNumber { number })
         },
+
         0x01 => {
             let text = String::from_utf8_lossy(data);
 
             *i = i_copy;
             Some(meta_event::MetaEvent::TextEvent { text: text.into() })
         },
+
         0x02 => {
             let notice = String::from_utf8_lossy(data);
 
             *i = i_copy;
             Some(meta_event::MetaEvent::CopyrightNotice { notice: notice.into() })
         },
+
         0x03 => {
             let name = String::from_utf8_lossy(data);
 
             *i = i_copy;
             Some(meta_event::MetaEvent::TrackName { name: name.into() })
         },
+
         0x04 => {
             let name = String::from_utf8_lossy(data);
 
             *i = i_copy;
             Some(meta_event::MetaEvent::InstrumentName { name: name.into() })
         },
+
         0x05 => {
             let text = String::from_utf8_lossy(data);
 
             *i = i_copy;
             Some(meta_event::MetaEvent::Lyric { text: text.into() })
         },
+
         0x06 => {
             let name = String::from_utf8_lossy(data);
 
             *i = i_copy;
             Some(meta_event::MetaEvent::Marker { name: name.into() })
         },
+
         0x07 => {
             let text = String::from_utf8_lossy(data);
 
             *i = i_copy;
             Some(meta_event::MetaEvent::CuePoint { text: text.into() })
         },
+
         0x20 => {
             if data_length != 1 {
                 return None;
@@ -357,6 +366,7 @@ pub fn try_parse_meta_event(data: &[u8], i: &mut usize) -> Option<meta_event::Me
             *i = i_copy;
             Some(meta_event::MetaEvent::MIDIChannelPrefix { channel })
         },
+
         0x2F => {
             if data_length != 0 {
                 return None;
@@ -365,6 +375,7 @@ pub fn try_parse_meta_event(data: &[u8], i: &mut usize) -> Option<meta_event::Me
             *i = i_copy;
             Some(meta_event::MetaEvent::EndOfTrack)
         },
+
         0x51 => {
             if data_length != 3 {
                 return None;
@@ -375,6 +386,7 @@ pub fn try_parse_meta_event(data: &[u8], i: &mut usize) -> Option<meta_event::Me
             *i = i_copy;
             Some(meta_event::MetaEvent::SetTempo { microseconds_per_midi_quarter_note })
         },
+
         0x54 => {
             if data_length != 5 {
                 return None;
@@ -389,6 +401,7 @@ pub fn try_parse_meta_event(data: &[u8], i: &mut usize) -> Option<meta_event::Me
             *i = i_copy;
             Some(meta_event::MetaEvent::SMPTEOffset { hour, minute, second, frame, fractional_frames })
         },
+
         0x58 => {
             if data_length != 4 {
                 return None;
@@ -402,6 +415,7 @@ pub fn try_parse_meta_event(data: &[u8], i: &mut usize) -> Option<meta_event::Me
             *i = i_copy;
             Some(meta_event::MetaEvent::TimeSignature { numerator, denominator, midi_clocks_per_metronome_click, thirty_second_notes_per_midi_quarter_note })
         },
+
         0x59 => {
             if data_length != 2 {
                 return None;
@@ -413,12 +427,17 @@ pub fn try_parse_meta_event(data: &[u8], i: &mut usize) -> Option<meta_event::Me
             *i = i_copy;
             Some(meta_event::MetaEvent::KeySignature { sf, mi })
         },
+
         0x7F => {
             
             *i = i_copy;
             Some(meta_event::MetaEvent::SequencerSpecific { data: data.to_vec() })
+        },
+
+        code => {
+            *i = i_copy;
+            Some(meta_event::MetaEvent::Alien { code, data: data.to_vec() })
         }
-        _ => None
     }
 }
 
