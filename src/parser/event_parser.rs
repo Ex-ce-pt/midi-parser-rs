@@ -9,15 +9,15 @@ fn try_construct_channel_mode_message(channel: u8, controller_number: u8, new_va
     }
 
     match (controller_number, new_value) {
-        (122, 0) => return Some(midi_event::MidiEvent::LocalControlOff { channel }),
-        (122, 127) => return Some(midi_event::MidiEvent::LocalControlOn { channel }),
-        (123, 0) => return Some(midi_event::MidiEvent::AllNotesOff { channel }),
-        (124, 0) => return Some(midi_event::MidiEvent::OmniModeOff { channel }),
-        (125, 0) => return Some(midi_event::MidiEvent::OmniModeOn { channel }),
-        (127, 0) => return Some(midi_event::MidiEvent::PolyModeOn { channel }),
+        (122, 0) => Some(midi_event::MidiEvent::LocalControlOff { channel }),
+        (122, 127) => Some(midi_event::MidiEvent::LocalControlOn { channel }),
+        (123, 0) => Some(midi_event::MidiEvent::AllNotesOff { channel }),
+        (124, 0) => Some(midi_event::MidiEvent::OmniModeOff { channel }),
+        (125, 0) => Some(midi_event::MidiEvent::OmniModeOn { channel }),
+        (127, 0) => Some(midi_event::MidiEvent::PolyModeOn { channel }),
 
-        _ => return None
-    };
+        _ => None
+    }
 }
 
 fn parse_midi_event_channel_voice_message_at(data: &[u8], i: &mut usize, event_code: u8) -> Result<midi_event::MidiEvent, ParsingError> {
@@ -41,7 +41,7 @@ fn parse_midi_event_channel_voice_message_at(data: &[u8], i: &mut usize, event_c
                 })
             };
 
-            return Ok(midi_event::MidiEvent::NoteOff { channel, key, velocity })
+            Ok(midi_event::MidiEvent::NoteOff { channel, key, velocity })
         },
 
         0b10010000 => {
@@ -60,7 +60,7 @@ fn parse_midi_event_channel_voice_message_at(data: &[u8], i: &mut usize, event_c
                 })
             };
 
-            return Ok(midi_event::MidiEvent::NoteOn { channel, key, velocity })
+            Ok(midi_event::MidiEvent::NoteOn { channel, key, velocity })
         },
 
         0b10100000 => {
@@ -79,7 +79,7 @@ fn parse_midi_event_channel_voice_message_at(data: &[u8], i: &mut usize, event_c
                 })
             };
 
-            return Ok(midi_event::MidiEvent::PolyphonicKeyPressure { channel, key, pressure_value })
+            Ok(midi_event::MidiEvent::PolyphonicKeyPressure { channel, key, pressure_value })
         },
 
         0b10110000 => {
@@ -104,7 +104,7 @@ fn parse_midi_event_channel_voice_message_at(data: &[u8], i: &mut usize, event_c
                 return Ok(msg);
             }
 
-            return Ok(midi_event::MidiEvent::ControlChange { channel, controller_number, new_value })
+            Ok(midi_event::MidiEvent::ControlChange { channel, controller_number, new_value })
         },
 
         0b11000000 => {
@@ -116,7 +116,7 @@ fn parse_midi_event_channel_voice_message_at(data: &[u8], i: &mut usize, event_c
                 })
             };
 
-            return Ok(midi_event::MidiEvent::ProgramChange { channel, new_program_number })
+            Ok(midi_event::MidiEvent::ProgramChange { channel, new_program_number })
         },
 
         0b11010000 => {
@@ -128,7 +128,7 @@ fn parse_midi_event_channel_voice_message_at(data: &[u8], i: &mut usize, event_c
                 })
             };
 
-            return Ok(midi_event::MidiEvent::ChannelPressure { channel, pressure_value })
+            Ok(midi_event::MidiEvent::ChannelPressure { channel, pressure_value })
         },
 
         0b11100000 => {
@@ -140,12 +140,12 @@ fn parse_midi_event_channel_voice_message_at(data: &[u8], i: &mut usize, event_c
                 })
             };
 
-            return Ok(midi_event::MidiEvent::PitchWheelChange { channel, pitch_wheel_value })
+            Ok(midi_event::MidiEvent::PitchWheelChange { channel, pitch_wheel_value })
         },
 
-        code => return Err(ParsingError {
+        code => Err(ParsingError {
             position: *i,
-            message: format!("Midi event code not defined - {} ({:b})", code, code)
+            message: format!("Midi event code not defined - {} ({:b} | {:X})", code, code, code)
         })
     }
 }
@@ -173,6 +173,7 @@ fn parse_midi_event_system_common_or_real_time_message_at(data: &[u8], i: &mut u
                     })
                 };
 
+                // "End of Exclusive" message
                 if byte == 0b11110111 {
                     break;
                 }
@@ -232,7 +233,7 @@ fn parse_midi_event_system_common_or_real_time_message_at(data: &[u8], i: &mut u
         },
 
         0b11111011 => {
-            Ok(midi_event::MidiEvent::Stop)
+            Ok(midi_event::MidiEvent::Continue)
         },
 
         0b11111100 => {
@@ -251,7 +252,7 @@ fn parse_midi_event_system_common_or_real_time_message_at(data: &[u8], i: &mut u
 
         code => return Err(ParsingError {
             position: *i,
-            message: format!("Midi event code not defined - {} ({:b})", code, code)
+            message: format!("Midi event code not defined - {} ({:b} | {:X})", code, code, code)
         })
 
     }
@@ -443,8 +444,6 @@ pub fn try_parse_meta_event(data: &[u8], i: &mut usize) -> Option<meta_event::Me
 
 #[cfg(test)]
 mod test {
-
-    use core::panic;
 
     use super::*;
 
