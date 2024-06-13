@@ -1,11 +1,10 @@
 mod util;
-pub mod chunk;
-pub mod midi_event;
-pub mod meta_event;
 mod event_parser;
+pub mod elements;
 
 use util::*;
 use event_parser::*;
+use elements::chunk;
 
 fn parse_header_at(data: &[u8], i: &mut usize) -> Result<chunk::Chunk, ParsingError> {
     

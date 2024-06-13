@@ -1,6 +1,5 @@
 use super::util::*;
-use super::midi_event;
-use super::meta_event;
+use super::elements::{midi_event, meta_event};
 
 fn try_construct_channel_mode_message(channel: u8, controller_number: u8, new_value: u8) -> Option<midi_event::MidiEvent> {
 

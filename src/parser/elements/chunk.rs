@@ -1,3 +1,5 @@
+use super::{midi_event, meta_event};
+
 pub const MTHD_LENGTH: usize = 6;
 
 #[derive(Debug)]
@@ -19,8 +21,8 @@ pub enum Division {
 
 #[derive(Debug)]
 pub enum TrackEventType {
-    Midi(super::midi_event::MidiEvent),
-    Meta(super::meta_event::MetaEvent)
+    Midi(midi_event::MidiEvent),
+    Meta(meta_event::MetaEvent)
 }
 
 #[derive(Debug)]

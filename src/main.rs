@@ -1,4 +1,4 @@
-use std::{fs::File, io::Read};
+use std::{fs::{File, OpenOptions}, io::{Read, Write}};
 
 mod parser;
 
@@ -7,9 +7,9 @@ mod parser;
 // https://www.lim.di.unimi.it/IEEE/MIDI/
 
 fn main() {
-    // let path = "Test MIDIs/Megalovania.mid";
+    let path = "Test MIDIs/Megalovania.mid";
     // let path = "Test MIDIs/Nyan Cat.mid";
-    let path = "Test MIDIs/U.N. Owen was her.mid";
+    // let path = "Test MIDIs/U.N. Owen was her.mid";
 
     // Open file
     let mut file = match File::open(path) {
@@ -29,9 +29,6 @@ fn main() {
         Err(e) => panic!("{}", e)
     };
 
-    // if let parser::chunk::Chunk::MTrk(trk) = &midi_file.tracks[1] {
-    //     println!("{}", trk.len());
-    // }
-
-    println!("{:#?}", midi_file);
+    let mut out_file = OpenOptions::new().write(true).open("out.txt").unwrap();
+    out_file.write(format!("{midi_file}").as_bytes()).unwrap();
 }
