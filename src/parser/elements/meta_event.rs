@@ -1,4 +1,4 @@
-#[derive(Debug)]
+#[derive(Debug, PartialEq)]
 pub enum MetaEvent {
     SequenceNumber {
         number: u16

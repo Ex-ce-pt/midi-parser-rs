@@ -4,7 +4,7 @@ use std::result;
 
 use super::keyname::KeyName;
 
-#[derive(Clone, Copy)]
+#[derive(Clone, Copy, PartialEq)]
 pub struct KeySignature {
     pub key: KeyName,
     pub minor: bool
@@ -76,7 +76,7 @@ impl KeySignature {
     
 }
 
-//////////
+// Traits
 
 impl Debug for KeySignature {
     fn fmt(&self, f: &mut Formatter<'_>) -> fmt::Result {

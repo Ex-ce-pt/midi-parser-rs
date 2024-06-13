@@ -6,7 +6,7 @@ use super::key_signature::KeySignature;
 
 pub const NUMBER_OF_KEYS: u8 = 12;
 
-#[derive(Clone, Copy)]
+#[derive(Clone, Copy, PartialEq)]
 pub enum KeyName {
     C,
     CSharp,

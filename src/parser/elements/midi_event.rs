@@ -1,5 +1,4 @@
-#[allow(dead_code)]
-#[derive(Debug)]
+#[derive(Debug, PartialEq)]
 pub enum MidiEvent {
     // Channel Voice Messages
     NoteOff {

@@ -421,7 +421,7 @@ pub fn try_parse_meta_event(data: &[u8], i: &mut usize) -> Option<meta_event::Me
                 return None;
             }
 
-            let key_signature_maybe = elements::key_signature::KeySignature::try_from_midi_msg([data[0], data[1]]);
+            let key_signature_maybe = key_signature::KeySignature::try_from_midi_msg([data[0], data[1]]);
             if key_signature_maybe.is_err() {
                 return None;
             }
@@ -446,6 +446,8 @@ pub fn try_parse_meta_event(data: &[u8], i: &mut usize) -> Option<meta_event::Me
 #[cfg(test)]
 mod test {
 
+    use elements::keyname::KeyName;
+
     use super::*;
 
     #[test]
@@ -455,44 +457,32 @@ mod test {
         let mut i: usize = 0;
 
         let data1: [u8; 3] = [0b10000000, 0b00110000, 0b01111111];
-        let result1 = match parse_midi_event_at(&data1, &mut i) {
+        let res1 = match parse_midi_event_at(&data1, &mut i) {
             Ok(r) => r,
             Err(e) => panic!("{e}")
         };
-        if let midi_event::MidiEvent::NoteOff { channel, key, velocity } = result1 {
-            if !(channel == 0 && key == 48 && velocity == 127) {
-                panic!("1. fail: wrong parameters");
-            }
-        } else {
-            panic!("1. fail: wrong enum variant");
+        if res1 != (midi_event::MidiEvent::NoteOff { channel: 0, key: 48, velocity: 127 }) {
+            panic!("1. fail: wrong data");   
         }
         i = 0;
 
         let data2: [u8; 3] = [0b10000011, 0b00110100, 0b01111011];
-        let result2 = match parse_midi_event_at(&data2, &mut i) {
+        let res2 = match parse_midi_event_at(&data2, &mut i) {
             Ok(r) => r,
             Err(e) => panic!("{e}")
         };
-        if let midi_event::MidiEvent::NoteOff { channel, key, velocity } = result2 {
-            if !(channel == 3 && key == 52 && velocity == 123) {
-                panic!("2. fail: wrong parameters");
-            }
-        } else {
-            panic!("2. fail: wrong enum variant");
+        if res2 != (midi_event::MidiEvent::NoteOff { channel: 3, key: 52, velocity: 123 }) {
+            panic!("2. fail: wrong data");
         }
         i = 0;
 
         let data3: [u8; 3] = [0b10001011, 0b00110110, 0b00000011];
-        let result3 = match parse_midi_event_at(&data3, &mut i) {
+        let res3 = match parse_midi_event_at(&data3, &mut i) {
             Ok(r) => r,
             Err(e) => panic!("{e}")
         };
-        if let midi_event::MidiEvent::NoteOff { channel, key, velocity } = result3 {
-            if !(channel == 11 && key == 54 && velocity == 3) {
-                panic!("3. fail: wrong parameters");
-            }
-        } else {
-            panic!("3. fail: wrong enum variant");
+        if res3 != (midi_event::MidiEvent::NoteOff { channel: 11, key: 54, velocity: 3 }) {
+            panic!("3. fail: wrong data");
         }
     }
 
@@ -503,44 +493,32 @@ mod test {
         let mut i: usize = 0;
 
         let data1: [u8; 3] = [0b10010000, 0b00110000, 0b01111111];
-        let result1 = match parse_midi_event_at(&data1, &mut i) {
+        let res1 = match parse_midi_event_at(&data1, &mut i) {
             Ok(r) => r,
             Err(e) => panic!("{e}")
         };
-        if let midi_event::MidiEvent::NoteOn { channel, key, velocity } = result1 {
-            if !(channel == 0 && key == 48 && velocity == 127) {
-                panic!("1. fail: wrong parameters");
-            }
-        } else {
-            panic!("1. fail: wrong enum variant");
+        if res1 != (midi_event::MidiEvent::NoteOn { channel: 0, key: 48, velocity: 127 }) {
+            panic!("1. fail: wrong data");
         }
         i = 0;
 
         let data2: [u8; 3] = [0b10010011, 0b00110100, 0b01111011];
-        let result2 = match parse_midi_event_at(&data2, &mut i) {
+        let res2 = match parse_midi_event_at(&data2, &mut i) {
             Ok(r) => r,
             Err(e) => panic!("{e}")
         };
-        if let midi_event::MidiEvent::NoteOn { channel, key, velocity } = result2 {
-            if !(channel == 3 && key == 52 && velocity == 123) {
-                panic!("2. fail: wrong parameters");
-            }
-        } else {
-            panic!("2. fail: wrong enum variant");
+        if res2 != (midi_event::MidiEvent::NoteOn { channel: 3, key: 52, velocity: 123 }) {
+            panic!("2. fail: wrong data");
         }
         i = 0;
 
         let data3: [u8; 3] = [0b10011011, 0b00110110, 0b00000011];
-        let result3 = match parse_midi_event_at(&data3, &mut i) {
+        let res3 = match parse_midi_event_at(&data3, &mut i) {
             Ok(r) => r,
             Err(e) => panic!("{e}")
         };
-        if let midi_event::MidiEvent::NoteOn { channel, key, velocity } = result3 {
-            if !(channel == 11 && key == 54 && velocity == 3) {
-                panic!("3. fail: wrong parameters");
-            }
-        } else {
-            panic!("3. fail: wrong enum variant");
+        if res3 != (midi_event::MidiEvent::NoteOn { channel: 11, key: 54, velocity: 3 }) {
+            panic!("3. fail: wrong data");
         }
     }
 
@@ -551,44 +529,32 @@ mod test {
         let mut i: usize = 0;
 
         let data1: [u8; 3] = [0b10100000, 0b00110000, 0b01111111];
-        let result1 = match parse_midi_event_at(&data1, &mut i) {
+        let res1: midi_event::MidiEvent = match parse_midi_event_at(&data1, &mut i) {
             Ok(r) => r,
             Err(e) => panic!("{e}")
         };
-        if let midi_event::MidiEvent::PolyphonicKeyPressure { channel, key, pressure_value } = result1 {
-            if !(channel == 0 && key == 48 && pressure_value == 127) {
-                panic!("1. fail: wrong parameters");
-            }
-        } else {
-            panic!("1. fail: wrong enum variant");
+        if res1 != (midi_event::MidiEvent::PolyphonicKeyPressure { channel: 0, key: 48, pressure_value: 127 }) {
+            panic!("1. fail: wrong data");
         }
         i = 0;
 
         let data2: [u8; 3] = [0b10100011, 0b00110100, 0b01111011];
-        let result2 = match parse_midi_event_at(&data2, &mut i) {
+        let res2 = match parse_midi_event_at(&data2, &mut i) {
             Ok(r) => r,
             Err(e) => panic!("{e}")
         };
-        if let midi_event::MidiEvent::PolyphonicKeyPressure { channel, key, pressure_value } = result2 {
-            if !(channel == 3 && key == 52 && pressure_value == 123) {
-                panic!("2. fail: wrong parameters");
-            }
-        } else {
-            panic!("2. fail: wrong enum variant");
+        if res2 != (midi_event::MidiEvent::PolyphonicKeyPressure { channel: 3, key: 52, pressure_value: 123 }) {
+            panic!("2. fail: wrong data");
         }
         i = 0;
 
         let data3: [u8; 3] = [0b10101011, 0b00110110, 0b00000011];
-        let result3 = match parse_midi_event_at(&data3, &mut i) {
+        let res3 = match parse_midi_event_at(&data3, &mut i) {
             Ok(r) => r,
             Err(e) => panic!("{e}")
         };
-        if let midi_event::MidiEvent::PolyphonicKeyPressure { channel, key, pressure_value } = result3 {
-            if !(channel == 11 && key == 54 && pressure_value == 3) {
-                panic!("3. fail: wrong parameters");
-            }
-        } else {
-            panic!("3. fail: wrong enum variant");
+        if res3 != (midi_event::MidiEvent::PolyphonicKeyPressure { channel: 11, key: 54, pressure_value: 3 }) {
+            panic!("3. fail: wrong data");
         }
     }
 
@@ -599,44 +565,32 @@ mod test {
         let mut i: usize = 0;
 
         let data1: [u8; 3] = [0b10110000, 0b00110000, 0b01111111];
-        let result1 = match parse_midi_event_at(&data1, &mut i) {
+        let res1 = match parse_midi_event_at(&data1, &mut i) {
             Ok(r) => r,
             Err(e) => panic!("{e}")
         };
-        if let midi_event::MidiEvent::ControlChange { channel, controller_number, new_value } = result1 {
-            if !(channel == 0 && controller_number == 48 && new_value == 127) {
-                panic!("1. fail: wrong parameters");
-            }
-        } else {
-            panic!("1. fail: wrong enum variant");
+        if res1 != (midi_event::MidiEvent::ControlChange { channel: 0, controller_number: 48, new_value: 127 }) {
+            panic!("1. fail: wrong data");
         }
         i = 0;
 
         let data2: [u8; 3] = [0b10110011, 0b00110100, 0b01111011];
-        let result2 = match parse_midi_event_at(&data2, &mut i) {
+        let res2 = match parse_midi_event_at(&data2, &mut i) {
             Ok(r) => r,
             Err(e) => panic!("{e}")
         };
-        if let midi_event::MidiEvent::ControlChange { channel, controller_number, new_value } = result2 {
-            if !(channel == 3 && controller_number == 52 && new_value == 123) {
-                panic!("2. fail: wrong parameters");
-            }
-        } else {
-            panic!("2. fail: wrong enum variant");
+        if res2 != (midi_event::MidiEvent::ControlChange { channel: 3, controller_number: 52, new_value: 123 }) {
+            panic!("2. fail: wrong data");
         }
         i = 0;
 
         let data3: [u8; 3] = [0b10111011, 0b00110110, 0b00000011];
-        let result3 = match parse_midi_event_at(&data3, &mut i) {
+        let res3 = match parse_midi_event_at(&data3, &mut i) {
             Ok(r) => r,
             Err(e) => panic!("{e}")
         };
-        if let midi_event::MidiEvent::ControlChange { channel, controller_number, new_value } = result3 {
-            if !(channel == 11 && controller_number == 54 && new_value == 3) {
-                panic!("3. fail: wrong parameters");
-            }
-        } else {
-            panic!("3. fail: wrong enum variant");
+        if res3 != (midi_event::MidiEvent::ControlChange { channel: 11, controller_number: 54, new_value: 3 }) {
+            panic!("3. fail: wrong data");
         }
     }
 
@@ -647,44 +601,32 @@ mod test {
         let mut i: usize = 0;
 
         let data1: [u8; 2] = [0b11000000, 0b00110000];
-        let result1 = match parse_midi_event_at(&data1, &mut i) {
+        let res1 = match parse_midi_event_at(&data1, &mut i) {
             Ok(r) => r,
             Err(e) => panic!("{e}")
         };
-        if let midi_event::MidiEvent::ProgramChange { channel, new_program_number } = result1 {
-            if !(channel == 0 && new_program_number == 48) {
-                panic!("1. fail: wrong parameters");
-            }
-        } else {
-            panic!("1. fail: wrong enum variant");
+        if res1 != (midi_event::MidiEvent::ProgramChange { channel: 0, new_program_number: 48 }) {
+            panic!("1. fail: wrong data");
         }
         i = 0;
 
         let data2: [u8; 2] = [0b11000011, 0b00110100];
-        let result2 = match parse_midi_event_at(&data2, &mut i) {
+        let res2 = match parse_midi_event_at(&data2, &mut i) {
             Ok(r) => r,
             Err(e) => panic!("{e}")
         };
-        if let midi_event::MidiEvent::ProgramChange { channel, new_program_number } = result2 {
-            if !(channel == 3 && new_program_number == 52) {
-                panic!("2. fail: wrong parameters");
-            }
-        } else {
-            panic!("2. fail: wrong enum variant");
+        if res2 != (midi_event::MidiEvent::ProgramChange { channel: 3, new_program_number: 52 }) {
+            panic!("2. fail: wrong data");
         }
         i = 0;
 
         let data3: [u8; 2] = [0b11001011, 0b00110110];
-        let result3 = match parse_midi_event_at(&data3, &mut i) {
+        let res3 = match parse_midi_event_at(&data3, &mut i) {
             Ok(r) => r,
             Err(e) => panic!("{e}")
         };
-        if let midi_event::MidiEvent::ProgramChange { channel, new_program_number } = result3 {
-            if !(channel == 11 && new_program_number == 54) {
-                panic!("3. fail: wrong parameters");
-            }
-        } else {
-            panic!("3. fail: wrong enum variant");
+        if res3 != (midi_event::MidiEvent::ProgramChange { channel: 11, new_program_number: 54 }) {
+            panic!("3. fail: wrong data");
         }
     }
 
@@ -695,44 +637,32 @@ mod test {
         let mut i: usize = 0;
 
         let data1: [u8; 2] = [0b11010000, 0b00110000];
-        let result1 = match parse_midi_event_at(&data1, &mut i) {
+        let res1 = match parse_midi_event_at(&data1, &mut i) {
             Ok(r) => r,
             Err(e) => panic!("{e}")
         };
-        if let midi_event::MidiEvent::ChannelPressure { channel, pressure_value } = result1 {
-            if !(channel == 0 && pressure_value == 48) {
-                panic!("1. fail: wrong parameters");
-            }
-        } else {
-            panic!("1. fail: wrong enum variant");
+        if res1 != (midi_event::MidiEvent::ChannelPressure { channel: 0, pressure_value: 48 }) {
+            panic!("1. fail: wrong data");
         }
         i = 0;
 
         let data2: [u8; 2] = [0b11010011, 0b00110100];
-        let result2 = match parse_midi_event_at(&data2, &mut i) {
+        let res2 = match parse_midi_event_at(&data2, &mut i) {
             Ok(r) => r,
             Err(e) => panic!("{e}")
         };
-        if let midi_event::MidiEvent::ChannelPressure { channel, pressure_value } = result2 {
-            if !(channel == 3 && pressure_value == 52) {
-                panic!("2. fail: wrong parameters");
-            }
-        } else {
-            panic!("2. fail: wrong enum variant");
+        if res2 != (midi_event::MidiEvent::ChannelPressure { channel : 3, pressure_value: 52 }) {
+            panic!("2. fail: wrong data");
         }
         i = 0;
 
         let data3: [u8; 2] = [0b11011011, 0b00110110];
-        let result3 = match parse_midi_event_at(&data3, &mut i) {
+        let res3 = match parse_midi_event_at(&data3, &mut i) {
             Ok(r) => r,
             Err(e) => panic!("{e}")
         };
-        if let midi_event::MidiEvent::ChannelPressure { channel, pressure_value } = result3 {
-            if !(channel == 11 && pressure_value == 54) {
-                panic!("3. fail: wrong parameters");
-            }
-        } else {
-            panic!("3. fail: wrong enum variant");
+        if res3 != (midi_event::MidiEvent::ChannelPressure { channel: 11, pressure_value: 54 }) {
+            panic!("3. fail: wrong data");
         }
     }
 
@@ -743,44 +673,32 @@ mod test {
         let mut i: usize = 0;
 
         let data1: [u8; 3] = [0b11100000, 0b00110000, 0b01111111];
-        let result1 = match parse_midi_event_at(&data1, &mut i) {
+        let res1 = match parse_midi_event_at(&data1, &mut i) {
             Ok(r) => r,
             Err(e) => panic!("{e}")
         };
-        if let midi_event::MidiEvent::PitchWheelChange { channel, pitch_wheel_value } = result1 {
-            if !(channel == 0 && pitch_wheel_value == 16304) {
-                panic!("1. fail: wrong parameters");
-            }
-        } else {
-            panic!("1. fail: wrong enum variant");
+        if res1 != (midi_event::MidiEvent::PitchWheelChange { channel: 0, pitch_wheel_value: 16304 }) {
+            panic!("1. fail: wrong data");
         }
         i = 0;
 
         let data2: [u8; 3] = [0b11100011, 0b00110100, 0b01111011];
-        let result2 = match parse_midi_event_at(&data2, &mut i) {
+        let res2 = match parse_midi_event_at(&data2, &mut i) {
             Ok(r) => r,
             Err(e) => panic!("{e}")
         };
-        if let midi_event::MidiEvent::PitchWheelChange { channel, pitch_wheel_value } = result2 {
-            if !(channel == 3 && pitch_wheel_value == 15796) {
-                panic!("2. fail: wrong parameters");
-            }
-        } else {
-            panic!("2. fail: wrong enum variant");
+        if res2 != (midi_event::MidiEvent::PitchWheelChange { channel: 3, pitch_wheel_value: 15796 }) {
+            panic!("2. fail: wrong data");
         }
         i = 0;
 
         let data3: [u8; 3] = [0b11101011, 0b00110110, 0b00000011];
-        let result3 = match parse_midi_event_at(&data3, &mut i) {
+        let res3 = match parse_midi_event_at(&data3, &mut i) {
             Ok(r) => r,
             Err(e) => panic!("{e}")
         };
-        if let midi_event::MidiEvent::PitchWheelChange { channel, pitch_wheel_value } = result3 {
-            if !(channel == 11 && pitch_wheel_value == 438) {
-                panic!("3. fail: wrong parameters");
-            }
-        } else {
-            panic!("3. fail: wrong enum variant");
+        if res3 != (midi_event::MidiEvent::PitchWheelChange { channel: 11, pitch_wheel_value: 438 }) {
+            panic!("3. fail: wrong data");
         }
     }
 
@@ -791,44 +709,32 @@ mod test {
         let mut i: usize = 0;
 
         let data1: [u8; 3] = [0b11110010, 0b00110000, 0b01111111];
-        let result1 = match parse_midi_event_at(&data1, &mut i) {
+        let res1 = match parse_midi_event_at(&data1, &mut i) {
             Ok(r) => r,
             Err(e) => panic!("{e}")
         };
-        if let midi_event::MidiEvent::SongPositionPointer { midi_beats_since_start } = result1 {
-            if !(midi_beats_since_start == 16304) {
-                panic!("1. fail: wrong parameters");
-            }
-        } else {
-            panic!("1. fail: wrong enum variant");
+        if res1 != (midi_event::MidiEvent::SongPositionPointer { midi_beats_since_start: 16304 }) {
+            panic!("1. fail: wrong data");
         }
         i = 0;
 
         let data2: [u8; 3] = [0b11110010, 0b00110100, 0b01111011];
-        let result2 = match parse_midi_event_at(&data2, &mut i) {
+        let res2 = match parse_midi_event_at(&data2, &mut i) {
             Ok(r) => r,
             Err(e) => panic!("{e}")
         };
-        if let midi_event::MidiEvent::SongPositionPointer { midi_beats_since_start } = result2 {
-            if !(midi_beats_since_start == 15796) {
-                panic!("2. fail: wrong parameters");
-            }
-        } else {
-            panic!("2. fail: wrong enum variant");
+        if res2 != (midi_event::MidiEvent::SongPositionPointer { midi_beats_since_start: 15796 }) {
+            panic!("2. fail: wrong data");
         }
         i = 0;
 
         let data3: [u8; 3] = [0b11110010, 0b00110110, 0b00000011];
-        let result3 = match parse_midi_event_at(&data3, &mut i) {
+        let res3 = match parse_midi_event_at(&data3, &mut i) {
             Ok(r) => r,
             Err(e) => panic!("{e}")
         };
-        if let midi_event::MidiEvent::SongPositionPointer { midi_beats_since_start } = result3 {
-            if !(midi_beats_since_start == 438) {
-                panic!("3. fail: wrong parameters");
-            }
-        } else {
-            panic!("3. fail: wrong enum variant");
+        if res3 != (midi_event::MidiEvent::SongPositionPointer { midi_beats_since_start: 438 }) {
+            panic!("3. fail: wrong data");
         }
     }
 
@@ -839,44 +745,32 @@ mod test {
         let mut i: usize = 0;
 
         let data1: [u8; 2] = [0b11110011, 0b00110000];
-        let result1 = match parse_midi_event_at(&data1, &mut i) {
+        let res1 = match parse_midi_event_at(&data1, &mut i) {
             Ok(r) => r,
             Err(e) => panic!("{e}")
         };
-        if let midi_event::MidiEvent::SongSelect { song } = result1 {
-            if !(song == 48) {
-                panic!("1. fail: wrong parameters");
-            }
-        } else {
-            panic!("1. fail: wrong enum variant");
+        if res1 != (midi_event::MidiEvent::SongSelect { song: 48 }) {
+            panic!("1. fail: wrong data");
         }
         i = 0;
 
         let data2: [u8; 2] = [0b11110011, 0b00110100];
-        let result2 = match parse_midi_event_at(&data2, &mut i) {
+        let res2 = match parse_midi_event_at(&data2, &mut i) {
             Ok(r) => r,
             Err(e) => panic!("{e}")
         };
-        if let midi_event::MidiEvent::SongSelect { song } = result2 {
-            if !(song == 52) {
-                panic!("2. fail: wrong parameters");
-            }
-        } else {
-            panic!("2. fail: wrong enum variant");
+        if res2 != (midi_event::MidiEvent::SongSelect { song: 52 }) {
+            panic!("2. fail: wrong data");
         }
         i = 0;
 
         let data3: [u8; 2] = [0b11110011, 0b00110110];
-        let result3 = match parse_midi_event_at(&data3, &mut i) {
+        let res3 = match parse_midi_event_at(&data3, &mut i) {
             Ok(r) => r,
             Err(e) => panic!("{e}")
         };
-        if let midi_event::MidiEvent::SongSelect { song } = result3 {
-            if !(song == 54) {
-                panic!("3. fail: wrong parameters");
-            }
-        } else {
-            panic!("3. fail: wrong enum variant");
+        if res3 != (midi_event::MidiEvent::SongSelect { song: 54 }) {
+            panic!("3. fail: wrong data");
         }
     }
 
@@ -887,14 +781,12 @@ mod test {
         let mut i: usize = 0;
 
         let data1: [u8; 1] = [0b11110110];
-        let result1 = match parse_midi_event_at(&data1, &mut i) {
+        let res1 = match parse_midi_event_at(&data1, &mut i) {
             Ok(r) => r,
             Err(e) => panic!("{e}")
         };
-        if let midi_event::MidiEvent::TuneRequest = result1 {
-            // Empty block
-        } else {
-            panic!("1. fail: wrong enum variant");
+        if res1 != midi_event::MidiEvent::TuneRequest {
+            panic!("1. fail: wrong data");   
         }
     }
 
@@ -905,13 +797,11 @@ mod test {
         let mut i: usize = 0;
 
         let data1: [u8; 1] = [0b11111000];
-        let result1 = match parse_midi_event_at(&data1, &mut i) {
+        let res1 = match parse_midi_event_at(&data1, &mut i) {
             Ok(r) => r,
             Err(e) => panic!("{e}")
         };
-        if let midi_event::MidiEvent::TimingClock = result1 {
-            // Empty block
-        } else {
+        if res1 != midi_event::MidiEvent::TimingClock {
             panic!("1. fail: wrong enum variant");
         }
     }
@@ -923,14 +813,12 @@ mod test {
         let mut i: usize = 0;
 
         let data1: [u8; 1] = [0b11111010];
-        let result1 = match parse_midi_event_at(&data1, &mut i) {
+        let res1 = match parse_midi_event_at(&data1, &mut i) {
             Ok(r) => r,
             Err(e) => panic!("{e}")
         };
-        if let midi_event::MidiEvent::Start = result1 {
-            // Empty block
-        } else {
-            panic!("1. fail: wrong enum variant");
+        if res1 != midi_event::MidiEvent::Start {
+            panic!("1. fail: wrong data");
         }
     }
 
@@ -941,14 +829,12 @@ mod test {
         let mut i: usize = 0;
 
         let data1: [u8; 1] = [0b11111100];
-        let result1 = match parse_midi_event_at(&data1, &mut i) {
+        let res1 = match parse_midi_event_at(&data1, &mut i) {
             Ok(r) => r,
             Err(e) => panic!("{e}")
         };
-        if let midi_event::MidiEvent::Stop = result1 {
-            // Empty block
-        } else {
-            panic!("1. fail: wrong enum variant");
+        if res1 != midi_event::MidiEvent::Stop {
+            panic!("1. fail: wrong data");
         }
     }
 
@@ -959,14 +845,12 @@ mod test {
         let mut i: usize = 0;
 
         let data1: [u8; 1] = [0b11111110];
-        let result1 = match parse_midi_event_at(&data1, &mut i) {
+        let res1 = match parse_midi_event_at(&data1, &mut i) {
             Ok(r) => r,
             Err(e) => panic!("{e}")
         };
-        if let midi_event::MidiEvent::ActiveSensing = result1 {
-            // Empty block
-        } else {
-            panic!("1. fail: wrong enum variant");
+        if res1 != midi_event::MidiEvent::ActiveSensing {
+            panic!("1. fail: wrong data");
         }
     }
 
@@ -977,14 +861,12 @@ mod test {
         let mut i: usize = 0;
 
         let data1: [u8; 1] = [0b11111111];
-        let result1 = match parse_midi_event_at(&data1, &mut i) {
+        let res1 = match parse_midi_event_at(&data1, &mut i) {
             Ok(r) => r,
             Err(e) => panic!("{e}")
         };
-        if let midi_event::MidiEvent::Reset = result1 {
-            // Empty block
-        } else {
-            panic!("1. fail: wrong enum variant");
+        if res1 != midi_event::MidiEvent::Reset {
+            panic!("1. fail: wrong data");
         }
     }
 
@@ -1358,23 +1240,15 @@ mod test {
 
         let data1 = [0xFF, 0x54, 0x05, 0x01, 0x02, 0x03, 0x04, 0x05];
         let res1 = try_parse_meta_event(&data1, &mut i);
-        if let Some(meta_event::MetaEvent::SMPTEOffset { hour, minute, second, frame, fractional_frames }) = res1 {
-            if hour != 1 || minute != 2 || second != 3 || frame != 4 || fractional_frames != 5 {
-                panic!("test1 returned wrong data");
-            }
-        } else {
-            panic!("test1 failed");
+        if res1 != Some(meta_event::MetaEvent::SMPTEOffset { hour: 1, minute: 2, second: 3, frame: 4, fractional_frames: 5 }) {
+            panic!("test1 returned wrong data");
         }
         i = 0;
 
         let data2 = [0xFF, 0x54, 0x05, 0x02, 0x03, 0x04, 0x05, 0x06];
         let res2 = try_parse_meta_event(&data2, &mut i);
-        if let Some(meta_event::MetaEvent::SMPTEOffset { hour, minute, second, frame, fractional_frames }) = res2 {
-            if hour != 2 || minute != 3 || second != 4 || frame != 5 || fractional_frames != 6 {
-                panic!("test2 returned wrong data");
-            }
-        } else {
-            panic!("test2 failed");
+        if res2 != Some(meta_event::MetaEvent::SMPTEOffset { hour: 2, minute: 3, second: 4, frame: 5, fractional_frames: 6 }) {
+            panic!("test2 returned wrong data");
         }
         i = 0;
 
@@ -1424,25 +1298,17 @@ mod test {
         // FF 59 02 sf mi
         let mut i = 0;
 
-        let data1 = [0xFF, 0x59, 0x02, 0x02, 0x01];
+        let data1 = [0xFF, 0x59, 0x02, 0x00, 0x00];
         let res1 = try_parse_meta_event(&data1, &mut i);
-        if let Some(meta_event::MetaEvent::KeySignature { sf, mi }) = res1 {
-            if sf != 0x02 || !mi {
-                panic!("test1 returned wrong data");
-            }
-        } else {
-            panic!("test1 failed");
+        if res1 != Some(meta_event::MetaEvent::KeySignature { key_signature: key_signature::KeySignature { key: KeyName::C, minor: false } }) {
+            panic!("test1 returned wrong data");
         }
         i = 0;
 
-        let data2 = [0xFF, 0x59, 0x02, 0x05, 0x00];
+        let data2 = [0xFF, 0x59, 0x02, 0x05, 0x01];
         let res2 = try_parse_meta_event(&data2, &mut i);
-        if let Some(meta_event::MetaEvent::KeySignature { sf, mi }) = res2 {
-            if sf != 0x05 || mi {
-                panic!("test2 returned wrong data");
-            }
-        } else {
-            panic!("test2 failed");
+        if res2 != Some(meta_event::MetaEvent::KeySignature { key_signature: key_signature::KeySignature { key: KeyName::GSharp, minor: true } }) {
+            panic!("test2 returned wrong data");
         }
         i = 0;
 
