@@ -1,4 +1,5 @@
 // Data wrappers
+pub mod keyname;
 pub mod key_signature;
 
 // Elements of the MIDI file format

@@ -1,5 +1,5 @@
-use super::util::*;
-use super::elements::{midi_event, meta_event};
+use super::{elements, util::*};
+use super::elements::{key_signature, meta_event, midi_event};
 
 fn try_construct_channel_mode_message(channel: u8, controller_number: u8, new_value: u8) -> Option<midi_event::MidiEvent> {
 
@@ -421,11 +421,13 @@ pub fn try_parse_meta_event(data: &[u8], i: &mut usize) -> Option<meta_event::Me
                 return None;
             }
 
-            let sf = data[0];
-            let mi = data[1] == 1;
+            let key_signature_maybe = elements::key_signature::KeySignature::try_from_midi_msg([data[0], data[1]]);
+            if key_signature_maybe.is_err() {
+                return None;
+            }
 
             *i = i_copy;
-            Some(meta_event::MetaEvent::KeySignature { sf, mi })
+            Some(meta_event::MetaEvent::KeySignature { key_signature: key_signature_maybe.unwrap() })
         },
 
         0x7F => {

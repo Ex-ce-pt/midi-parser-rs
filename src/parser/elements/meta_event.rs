@@ -45,8 +45,7 @@ pub enum MetaEvent {
         thirty_second_notes_per_midi_quarter_note: u8
     },
     KeySignature {
-        sf: u8,
-        mi: bool
+        key_signature: super::key_signature::KeySignature
     },
     SequencerSpecific {
         data: Vec<u8>
