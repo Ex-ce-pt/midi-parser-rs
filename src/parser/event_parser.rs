@@ -408,7 +408,7 @@ pub fn try_parse_meta_event(data: &[u8], i: &mut usize) -> Option<meta_event::Me
             }
 
             let numerator = data[0];
-            let denominator = data[1];
+            let denominator = 2_u8.pow(data[1] as u32);
             let midi_clocks_per_metronome_click = data[2];
             let thirty_second_notes_per_midi_quarter_note = data[3];
 
@@ -1248,14 +1248,14 @@ mod test {
 
         let data1 = [0xFF, 0x58, 0x04, 0x02, 0x02, 0x09, 0x09];
         let res1 = try_parse_meta_event(&data1, &mut i);
-        if res1 != Some(meta_event::MetaEvent::TimeSignature { numerator: 2, denominator: 2, midi_clocks_per_metronome_click: 9, thirty_second_notes_per_midi_quarter_note: 9 }) {
+        if res1 != Some(meta_event::MetaEvent::TimeSignature { numerator: 2, denominator: 4, midi_clocks_per_metronome_click: 9, thirty_second_notes_per_midi_quarter_note: 9 }) {
             panic!("test1 failed");
         }
         i = 0;
 
         let data2 = [0xFF, 0x58, 0x04, 0x02, 0x03, 0x04, 0x05];
         let res2 = try_parse_meta_event(&data2, &mut i);
-        if res2 != Some(meta_event::MetaEvent::TimeSignature { numerator: 2, denominator: 3, midi_clocks_per_metronome_click: 4, thirty_second_notes_per_midi_quarter_note: 5 }) {
+        if res2 != Some(meta_event::MetaEvent::TimeSignature { numerator: 2, denominator: 8, midi_clocks_per_metronome_click: 4, thirty_second_notes_per_midi_quarter_note: 5 }) {
             panic!("test2 failed");
         }
         i = 0;

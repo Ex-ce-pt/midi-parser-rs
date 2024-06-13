@@ -14,7 +14,7 @@ MidiFile {
                     event: Meta(
                         TimeSignature {
                             numerator: 4,
-                            denominator: 2,
+                            denominator: 4,
                             midi_clocks_per_metronome_click: 24,
                             thirty_second_notes_per_midi_quarter_note: 8,
                         },
