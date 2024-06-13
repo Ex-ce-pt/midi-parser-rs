@@ -881,7 +881,7 @@ mod test {
         let res1 = try_parse_meta_event(&data1, &mut i);
         if let Some(meta_event::MetaEvent::SequenceNumber { number }) = res1 {
             if number != 22 {
-                panic!("test1 returned wrong data ({number})");
+                panic!("test1 failed ({number})");
             }
         } else {
             panic!("test1 failed");
@@ -892,7 +892,7 @@ mod test {
         let res2 = try_parse_meta_event(&data2, &mut i);
         if let Some(meta_event::MetaEvent::SequenceNumber { number }) = res2 {
             if number != 5632 {
-                panic!("test2 returned wrong data");
+                panic!("test2 failed");
             }
         } else {
             panic!("test2 failed");
@@ -915,7 +915,7 @@ mod test {
         let res1 = try_parse_meta_event(&data1, &mut i);
         if let Some(meta_event::MetaEvent::TextEvent { text }) = res1 {
             if text != "Hi" {
-                panic!("test1 returned wrong data");
+                panic!("test1 failed");
             }
         } else {
             panic!("test1 failed");
@@ -926,7 +926,7 @@ mod test {
         let res2 = try_parse_meta_event(&data2, &mut i);
         if let Some(meta_event::MetaEvent::TextEvent { text }) = res2 {
             if text != "LOL" {
-                panic!("test2 returned wrong data");
+                panic!("test2 failed");
             }
         } else {
             panic!("test2 failed");
@@ -949,7 +949,7 @@ mod test {
         let res1 = try_parse_meta_event(&data1, &mut i);
         if let Some(meta_event::MetaEvent::CopyrightNotice { notice }) = res1 {
             if notice != "Hi" {
-                panic!("test1 returned wrong data");
+                panic!("test1 failed");
             }
         } else {
             panic!("test1 failed");
@@ -960,7 +960,7 @@ mod test {
         let res2 = try_parse_meta_event(&data2, &mut i);
         if let Some(meta_event::MetaEvent::CopyrightNotice { notice }) = res2 {
             if notice != "LOL" {
-                panic!("test2 returned wrong data");
+                panic!("test2 failed");
             }
         } else {
             panic!("test2 failed");
@@ -983,7 +983,7 @@ mod test {
         let res1 = try_parse_meta_event(&data1, &mut i);
         if let Some(meta_event::MetaEvent::TrackName { name }) = res1 {
             if name != "Hi" {
-                panic!("test1 returned wrong data");
+                panic!("test1 failed");
             }
         } else {
             panic!("test1 failed");
@@ -994,7 +994,7 @@ mod test {
         let res2 = try_parse_meta_event(&data2, &mut i);
         if let Some(meta_event::MetaEvent::TrackName { name }) = res2 {
             if name != "LOL" {
-                panic!("test2 returned wrong data");
+                panic!("test2 failed");
             }
         } else {
             panic!("test2 failed");
@@ -1017,7 +1017,7 @@ mod test {
         let res1 = try_parse_meta_event(&data1, &mut i);
         if let Some(meta_event::MetaEvent::InstrumentName { name }) = res1 {
             if name != "Hi" {
-                panic!("test1 returned wrong data");
+                panic!("test1 failed");
             }
         } else {
             panic!("test1 failed");
@@ -1028,7 +1028,7 @@ mod test {
         let res2 = try_parse_meta_event(&data2, &mut i);
         if let Some(meta_event::MetaEvent::InstrumentName { name }) = res2 {
             if name != "LOL" {
-                panic!("test2 returned wrong data");
+                panic!("test2 failed");
             }
         } else {
             panic!("test2 failed");
@@ -1051,7 +1051,7 @@ mod test {
         let res1 = try_parse_meta_event(&data1, &mut i);
         if let Some(meta_event::MetaEvent::Lyric { text }) = res1 {
             if text != "Hi" {
-                panic!("test1 returned wrong data");
+                panic!("test1 failed");
             }
         } else {
             panic!("test1 failed");
@@ -1062,7 +1062,7 @@ mod test {
         let res2 = try_parse_meta_event(&data2, &mut i);
         if let Some(meta_event::MetaEvent::Lyric { text }) = res2 {
             if text != "LOL" {
-                panic!("test2 returned wrong data");
+                panic!("test2 failed");
             }
         } else {
             panic!("test2 failed");
@@ -1085,7 +1085,7 @@ mod test {
         let res1 = try_parse_meta_event(&data1, &mut i);
         if let Some(meta_event::MetaEvent::Marker { name }) = res1 {
             if name != "Hi" {
-                panic!("test1 returned wrong data");
+                panic!("test1 failed");
             }
         } else {
             panic!("test1 failed");
@@ -1096,7 +1096,7 @@ mod test {
         let res2 = try_parse_meta_event(&data2, &mut i);
         if let Some(meta_event::MetaEvent::Marker { name }) = res2 {
             if name != "LOL" {
-                panic!("test2 returned wrong data");
+                panic!("test2 failed");
             }
         } else {
             panic!("test2 failed");
@@ -1119,7 +1119,7 @@ mod test {
         let res1 = try_parse_meta_event(&data1, &mut i);
         if let Some(meta_event::MetaEvent::CuePoint { text }) = res1 {
             if text != "Hi" {
-                panic!("test1 returned wrong data");
+                panic!("test1 failed");
             }
         } else {
             panic!("test1 failed");
@@ -1130,7 +1130,7 @@ mod test {
         let res2 = try_parse_meta_event(&data2, &mut i);
         if let Some(meta_event::MetaEvent::CuePoint { text }) = res2 {
             if text != "LOL" {
-                panic!("test2 returned wrong data");
+                panic!("test2 failed");
             }
         } else {
             panic!("test2 failed");
@@ -1151,22 +1151,14 @@ mod test {
 
         let data1 = [0xFF, 0x20, 0x01, 0x03];
         let res1 = try_parse_meta_event(&data1, &mut i);
-        if let Some(meta_event::MetaEvent::MIDIChannelPrefix { channel }) = res1 {
-            if channel != 3 {
-                panic!("test1 returned wrong data");
-            }
-        } else {
+        if res1 != Some(meta_event::MetaEvent::MIDIChannelPrefix { channel: 3 }) {
             panic!("test1 failed");
         }
         i = 0;
 
         let data2 = [0xFF, 0x20, 0x01, 0x05];
         let res2 = try_parse_meta_event(&data2, &mut i);
-        if let Some(meta_event::MetaEvent::MIDIChannelPrefix { channel }) = res2 {
-            if channel != 5 {
-                panic!("test2 returned wrong data");
-            }
-        } else {
+        if res2 != Some(meta_event::MetaEvent::MIDIChannelPrefix { channel: 5 }) {
             panic!("test2 failed");
         }
         i = 0;
@@ -1185,9 +1177,7 @@ mod test {
 
         let data1 = [0xFF, 0x2F, 0x00];
         let res1 = try_parse_meta_event(&data1, &mut i);
-        if let Some(meta_event::MetaEvent::EndOfTrack) = res1 {
-            // Empty block
-        } else {
+        if res1 != Some(meta_event::MetaEvent::EndOfTrack) {
             panic!("test1 failed");
         }
         i = 0;
@@ -1206,22 +1196,14 @@ mod test {
 
         let data1 = [0xFF, 0x51, 0x03, 0x00, 0x00, 0x01];
         let res1 = try_parse_meta_event(&data1, &mut i);
-        if let Some(meta_event::MetaEvent::SetTempo { microseconds_per_midi_quarter_note }) = res1 {
-            if microseconds_per_midi_quarter_note != 1 {
-                panic!("test1 returned wrong data");
-            }
-        } else {
+        if res1 != Some(meta_event::MetaEvent::SetTempo { microseconds_per_midi_quarter_note: 1 }) {
             panic!("test1 failed");
         }
         i = 0;
 
         let data2 = [0xFF, 0x51, 0x03, 0x01, 0x02, 0x03];
         let res2 = try_parse_meta_event(&data2, &mut i);
-        if let Some(meta_event::MetaEvent::SetTempo { microseconds_per_midi_quarter_note }) = res2 {
-            if microseconds_per_midi_quarter_note != 66051 {
-                panic!("test2 returned wrong data");
-            }
-        } else {
+        if res2 != Some(meta_event::MetaEvent::SetTempo { microseconds_per_midi_quarter_note: 66051 }) {
             panic!("test2 failed");
         }
         i = 0;
@@ -1241,14 +1223,14 @@ mod test {
         let data1 = [0xFF, 0x54, 0x05, 0x01, 0x02, 0x03, 0x04, 0x05];
         let res1 = try_parse_meta_event(&data1, &mut i);
         if res1 != Some(meta_event::MetaEvent::SMPTEOffset { hour: 1, minute: 2, second: 3, frame: 4, fractional_frames: 5 }) {
-            panic!("test1 returned wrong data");
+            panic!("test1 failed");
         }
         i = 0;
 
         let data2 = [0xFF, 0x54, 0x05, 0x02, 0x03, 0x04, 0x05, 0x06];
         let res2 = try_parse_meta_event(&data2, &mut i);
         if res2 != Some(meta_event::MetaEvent::SMPTEOffset { hour: 2, minute: 3, second: 4, frame: 5, fractional_frames: 6 }) {
-            panic!("test2 returned wrong data");
+            panic!("test2 failed");
         }
         i = 0;
 
@@ -1266,22 +1248,14 @@ mod test {
 
         let data1 = [0xFF, 0x58, 0x04, 0x02, 0x02, 0x09, 0x09];
         let res1 = try_parse_meta_event(&data1, &mut i);
-        if let Some(meta_event::MetaEvent::TimeSignature { numerator, denominator, midi_clocks_per_metronome_click, thirty_second_notes_per_midi_quarter_note }) = res1 {
-            if numerator != 2 || denominator != 2 || midi_clocks_per_metronome_click != 9 || thirty_second_notes_per_midi_quarter_note != 9 {
-                panic!("test1 returned wrong data");
-            }
-        } else {
+        if res1 != Some(meta_event::MetaEvent::TimeSignature { numerator: 2, denominator: 2, midi_clocks_per_metronome_click: 9, thirty_second_notes_per_midi_quarter_note: 9 }) {
             panic!("test1 failed");
         }
         i = 0;
 
         let data2 = [0xFF, 0x58, 0x04, 0x02, 0x03, 0x04, 0x05];
         let res2 = try_parse_meta_event(&data2, &mut i);
-        if let Some(meta_event::MetaEvent::TimeSignature { numerator, denominator, midi_clocks_per_metronome_click, thirty_second_notes_per_midi_quarter_note }) = res2 {
-            if numerator != 2 || denominator != 3 || midi_clocks_per_metronome_click != 4 || thirty_second_notes_per_midi_quarter_note != 5 {
-                panic!("test2 returned wrong data");
-            }
-        } else {
+        if res2 != Some(meta_event::MetaEvent::TimeSignature { numerator: 2, denominator: 3, midi_clocks_per_metronome_click: 4, thirty_second_notes_per_midi_quarter_note: 5 }) {
             panic!("test2 failed");
         }
         i = 0;
@@ -1301,14 +1275,14 @@ mod test {
         let data1 = [0xFF, 0x59, 0x02, 0x00, 0x00];
         let res1 = try_parse_meta_event(&data1, &mut i);
         if res1 != Some(meta_event::MetaEvent::KeySignature { key_signature: key_signature::KeySignature { key: KeyName::C, minor: false } }) {
-            panic!("test1 returned wrong data");
+            panic!("test1 failed");
         }
         i = 0;
 
         let data2 = [0xFF, 0x59, 0x02, 0x05, 0x01];
         let res2 = try_parse_meta_event(&data2, &mut i);
         if res2 != Some(meta_event::MetaEvent::KeySignature { key_signature: key_signature::KeySignature { key: KeyName::GSharp, minor: true } }) {
-            panic!("test2 returned wrong data");
+            panic!("test2 failed");
         }
         i = 0;
 
@@ -1328,7 +1302,7 @@ mod test {
         let res1 = try_parse_meta_event(&data1, &mut i);
         if let Some(meta_event::MetaEvent::SequencerSpecific { data }) = res1 {
             if data != vec![0x01, 0x02] {
-                panic!("test1 returned wrong data");
+                panic!("test1 failed");
             }
         } else {
             panic!("test1 failed");
@@ -1339,7 +1313,7 @@ mod test {
         let res2 = try_parse_meta_event(&data2, &mut i);
         if let Some(meta_event::MetaEvent::SequencerSpecific { data }) = res2 {
             if data != vec![0x02, 0x03, 0x04] {
-                panic!("test2 returned wrong data");
+                panic!("test2 failed");
             }
         } else {
             panic!("test2 failed");
