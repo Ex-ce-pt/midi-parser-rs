@@ -1,3 +1,5 @@
+//! A module defining the `MetaEvent` type and implementing its functionality.
+
 #[derive(Debug, PartialEq)]
 pub enum MetaEvent {
     SequenceNumber {
@@ -51,7 +53,7 @@ pub enum MetaEvent {
         data: Vec<u8>
     },
 
-    // A meta-event not defined by the documentation.
+    /// A meta-event not defined in the documentation.
     Alien {
         code: u8,
         data: Vec<u8>

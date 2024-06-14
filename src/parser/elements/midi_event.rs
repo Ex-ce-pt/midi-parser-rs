@@ -1,3 +1,5 @@
+//! A module defining the `MidiEvent` type and implementing its functionality.
+
 #[derive(Debug, PartialEq)]
 pub enum MidiEvent {
     // Channel Voice Messages

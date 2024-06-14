@@ -1,3 +1,9 @@
+//! A simple MIDI file parser written in Rust.
+//! 
+//! By Exedice
+//! 
+//! GitHub repo: https://github.com/Ex-ce-pt/midi-parser-rs
+
 mod util;
 mod event_parser;
 pub mod elements;
@@ -105,6 +111,24 @@ fn parse_track_at(data: &[u8], i: &mut usize, length: usize) -> Result<chunk::Ch
     Ok(chunk::Chunk::MTrk(events))
 }
 
+/// A function for parsing the contents of a MIDI file into a `MidiFile` struct.
+/// 
+/// # Examples
+/// 
+/// ```
+/// // Open file
+/// let mut file = match File::open("Test MIDIs/Megalovania.mid").unwrap();
+/// // Read the file into a buffer
+/// let mut buf = Vec::<u8>::new();
+/// let read_res = file.read_to_end(&mut buf);
+/// if let Err(e) = read_res {
+///     panic!("{}", e);
+/// }
+/// let midi_file = match parser::parse_midi_file(&buf) {
+///     Ok(f) => f,
+///     Err(e) => panic!("{}", e)
+/// };
+/// ```
 pub fn parse_midi_file(data: &[u8]) -> Result<chunk::MidiFile, ParsingError> {
     // Iterator
     let mut i: usize = 0;

@@ -1,28 +1,39 @@
+//! A module defining the `KeySignature` type and implementing its functionality.
+
 use std::fmt;
 use std::fmt::{Debug, Display, Formatter};
 use std::result;
 
 use super::keyname::KeyName;
 
+/// A struct representing the key signature (scale) of a song or a section of a song. Only major and minor scales are supported.
 #[derive(Clone, Copy, PartialEq)]
 pub struct KeySignature {
+    /// The root key of the scale.
     pub key: KeyName,
+
+    /// Whether the scale is minor.
+    /// 
+    /// `false` - major
+    /// 
+    /// `true` - minor
     pub minor: bool
 }
 
 impl KeySignature {
     
-    #[allow(dead_code)]
+    /// Returns an array of notes that are included in the given scale. Only major and minor scales are supported.
     pub fn notes_in_scale(&self) -> [KeyName; 7] {
         todo!();
     }
     
 }
 
-// MIDI
+// MIDI convertions
 
 impl KeySignature {
     
+    /// Attempts to convert a MIDI representation of a time signature into the `KeySignature` object.
     pub fn try_from_midi_msg(value: [u8; 2]) -> Result<Self, ()> {
         let sharps_flats = value[0] as i8;
         

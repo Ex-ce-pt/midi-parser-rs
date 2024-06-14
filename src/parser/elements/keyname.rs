@@ -1,11 +1,16 @@
+//! A module defining the `KeyName` type and implementing its functionality.
+
 use std::fmt;
 use std::fmt::{Debug, Display, Formatter};
 // use std::result;
 
 use super::key_signature::KeySignature;
 
+/// Total number of keys in 12 tone equal temperament.
 pub const NUMBER_OF_KEYS: u8 = 12;
 
+/// An enum representing the 12 keys of the 12 tone equal temperament.
+/// The black keys are named as sharps (e.g. CSharp) and not as flats (e.g. DFlat).
 #[derive(Clone, Copy, PartialEq)]
 pub enum KeyName {
     C,
@@ -24,24 +29,30 @@ pub enum KeyName {
 
 impl KeyName {
     
+    /// Attempts to convert a `u8` into `KeyName` based on the order of the keys.
+    ///
+    /// For an opposite operation, see `KeyName::into_index`.
     pub fn try_from_index(idx: u8) -> Option<Self> {
         match idx {
-            0 => Some(Self::C),
-            1 => Some(Self::CSharp),
-            2 => Some(Self::D),
-            3 => Some(Self::DSharp),
-            4 => Some(Self::E),
-            5 => Some(Self::F),
-            6 => Some(Self::FSharp),
-            7 => Some(Self::G),
-            8 => Some(Self::GSharp),
-            9 => Some(Self::A),
+            0  => Some(Self::C),
+            1  => Some(Self::CSharp),
+            2  => Some(Self::D),
+            3  => Some(Self::DSharp),
+            4  => Some(Self::E),
+            5  => Some(Self::F),
+            6  => Some(Self::FSharp),
+            7  => Some(Self::G),
+            8  => Some(Self::GSharp),
+            9  => Some(Self::A),
             10 => Some(Self::ASharp),
             11 => Some(Self::B),
-            _ => None
+            _  => None
         }
     }
     
+    /// Converts the `KeyName` into `u8` based on the order of the keys.
+    /// 
+    /// For an opposite operation, see `KeyName::try_from_index`.
     pub fn into_index(&self) -> usize {
         *self as usize
     }
@@ -65,6 +76,9 @@ impl KeyName {
     //     }
     // }
     
+    /// Attempts to convert a name of the key (e.g. G, F#, Ab) into `KeyName`.
+    /// 
+    /// For an opposite operation, see `KeyName::into_str`.
     pub fn try_from_name(name: &str) -> Option<Self> {
         match name {
             "B#" => Some(Self::C),
@@ -91,6 +105,9 @@ impl KeyName {
         }
     }
     
+    /// Converts the given `KeyName` into a `&'static str`.
+    /// 
+    /// For an opposite operation, see `KeyName::try_from_name`.
     pub fn into_str(&self) -> &'static str {
         match self {
             Self::C      => "C",
@@ -108,6 +125,17 @@ impl KeyName {
         }
     }
 
+    /// Caution! unimplemented.
+    /// 
+    /// Converts the `KeyName` into `&'static str` based on the scale provided.
+    /// 
+    /// # Examples
+    /// 
+    /// ```
+    /// let scale = KeySignature { key: KeyName::G, minor: true };
+    /// let name_in_scale = KeyName::ASharp.into_str_in_scale(scale);
+    /// assert!(name_in_scale == "Eb");
+    /// ```
     pub fn into_str_in_scale(&self, scale: &KeySignature) -> &'static str {
         todo!();
     }
@@ -118,6 +146,9 @@ impl KeyName {
 
 impl KeyName {
 
+    /// Attempts to convert the MIDI representation of a key into a tuple `(KeyName, i8)`, where the first entry is the key name and the second entry is the octave.
+    /// 
+    /// For an opposite operation, see `KeyName::try_into_midi_keycode`.
     pub fn try_from_midi_keycode(value: u8) -> Result<(Self, i8), ()> {
         if value > 127 {
             return Err(());
@@ -129,6 +160,9 @@ impl KeyName {
         Ok((keyname, octave))
     }
     
+    /// Attempts to convert the given `KeyName` into a MIDI representation using the octave the key is on.
+    /// 
+    /// For an opposite operation, see `KeyName::try_from_midi_keycode`.
     pub fn try_into_midi_keycode(&self, octave: i8) -> Result<u8, ()> {
         if octave < -1 || octave > 9 || (octave == 9 && self.into_index() > Self::G.into_index()) {
             return Err(());
