@@ -1,4 +1,4 @@
-use super::{elements, util::*};
+use super::{err, elements, util::*};
 use super::elements::{key_signature, meta_event, midi_event};
 
 fn try_construct_channel_mode_message(channel: u8, controller_number: u8, new_value: u8) -> Option<midi_event::MidiEvent> {
@@ -8,18 +8,18 @@ fn try_construct_channel_mode_message(channel: u8, controller_number: u8, new_va
     }
 
     match (controller_number, new_value) {
-        (122, 0) => Some(midi_event::MidiEvent::LocalControlOff { channel }),
+        (122, 0)   => Some(midi_event::MidiEvent::LocalControlOff { channel }),
         (122, 127) => Some(midi_event::MidiEvent::LocalControlOn { channel }),
-        (123, 0) => Some(midi_event::MidiEvent::AllNotesOff { channel }),
-        (124, 0) => Some(midi_event::MidiEvent::OmniModeOff { channel }),
-        (125, 0) => Some(midi_event::MidiEvent::OmniModeOn { channel }),
-        (127, 0) => Some(midi_event::MidiEvent::PolyModeOn { channel }),
+        (123, 0)   => Some(midi_event::MidiEvent::AllNotesOff { channel }),
+        (124, 0)   => Some(midi_event::MidiEvent::OmniModeOff { channel }),
+        (125, 0)   => Some(midi_event::MidiEvent::OmniModeOn { channel }),
+        (127, 0)   => Some(midi_event::MidiEvent::PolyModeOn { channel }),
 
         _ => None
     }
 }
 
-fn parse_midi_event_channel_voice_message_at(data: &[u8], i: &mut usize, event_code: u8) -> Result<midi_event::MidiEvent, ParsingError> {
+fn parse_midi_event_channel_voice_message_at(data: &[u8], i: &mut usize, event_code: u8) -> Result<midi_event::MidiEvent, err::MIDIParsingError> {
     let channel = event_code & 0b1111;
     
     match event_code & 0b11110000 {
@@ -27,17 +27,11 @@ fn parse_midi_event_channel_voice_message_at(data: &[u8], i: &mut usize, event_c
         0b10000000 => {
             let key = match read_bytes_at(data, i, 1) {
                 Ok(k) => k[0],
-                Err(e) => return Err(ParsingError {
-                    position: *i,
-                    message: format!("Not enough data to read MidiEvent[NoteOff].key\n{}", e)
-                })
+                Err(e) => return Err(e.with_msg("Not enough data to read MidiEvent[NoteOff].key"))
             };
             let velocity = match read_bytes_at(data, i, 1) {
                 Ok(v) => v[0],
-                Err(e) => return Err(ParsingError {
-                    position: *i,
-                    message: format!("Not enough data to read MidiEvent[NoteOff].velocity\n{}", e)
-                })
+                Err(e) => return Err(e.with_msg("Not enough data to read MidiEvent[NoteOff].velocity"))
             };
 
             Ok(midi_event::MidiEvent::NoteOff { channel, key, velocity })
@@ -46,17 +40,11 @@ fn parse_midi_event_channel_voice_message_at(data: &[u8], i: &mut usize, event_c
         0b10010000 => {
             let key = match read_bytes_at(data, i, 1) {
                 Ok(k) => k[0],
-                Err(e) => return Err(ParsingError {
-                    position: *i,
-                    message: format!("Not enough data to read MidiEvent[NoteOn].key\n{}", e)
-                })
+                Err(e) => return Err(e.with_msg("Not enough data to read MidiEvent[NoteOn].key"))
             };
             let velocity = match read_bytes_at(data, i, 1) {
                 Ok(v) => v[0],
-                Err(e) => return Err(ParsingError {
-                    position: *i,
-                    message: format!("Not enough data to read MidiEvent[NoteOn].velocity\n{}", e)
-                })
+                Err(e) => return Err(e.with_msg("Not enough data to read MidiEvent[NoteOn].velocity"))
             };
 
             Ok(midi_event::MidiEvent::NoteOn { channel, key, velocity })
@@ -65,17 +53,11 @@ fn parse_midi_event_channel_voice_message_at(data: &[u8], i: &mut usize, event_c
         0b10100000 => {
             let key = match read_bytes_at(data, i, 1) {
                 Ok(k) => k[0],
-                Err(e) => return Err(ParsingError {
-                    position: *i,
-                    message: format!("Not enough data to read MidiEvent[PolyphonicKeyPressure].key\n{}", e)
-                })
+                Err(e) => return Err(e.with_msg("Not enough data to read MidiEvent[PolyphonicKeyPressure].key"))
             };
             let pressure_value = match read_bytes_at(data, i, 1) {
                 Ok(p) => p[0],
-                Err(e) => return Err(ParsingError {
-                    position: *i,
-                    message: format!("Not enough data to read MidiEvent[PolyphonicKeyPressure].pressure_value\n{}", e)
-                })
+                Err(e) => return Err(e.with_msg("Not enough data to read MidiEvent[PolyphonicKeyPressure].pressure_value"))
             };
 
             Ok(midi_event::MidiEvent::PolyphonicKeyPressure { channel, key, pressure_value })
@@ -84,17 +66,11 @@ fn parse_midi_event_channel_voice_message_at(data: &[u8], i: &mut usize, event_c
         0b10110000 => {
             let controller_number = match read_bytes_at(data, i, 1) {
                 Ok(c) => c[0],
-                Err(e) => return Err(ParsingError {
-                    position: *i,
-                    message: format!("Not enough data to read MidiEvent[ControlChange].controller_number\n{}", e)
-                })
+                Err(e) => return Err(e.with_msg("Not enough data to read MidiEvent[ControlChange].controller_number"))
             };
             let new_value = match read_bytes_at(data, i, 1) {
                 Ok(v) => v[0],
-                Err(e) => return Err(ParsingError {
-                    position: *i,
-                    message: format!("Not enough data to read MidiEvent[ControlChange].new_value\n{}", e)
-                })
+                Err(e) => return Err(e.with_msg("Not enough data to read MidiEvent[ControlChange].new_value"))
             };
 
             let channel_mode_msg_maybe = try_construct_channel_mode_message(channel, controller_number, new_value);
@@ -109,10 +85,7 @@ fn parse_midi_event_channel_voice_message_at(data: &[u8], i: &mut usize, event_c
         0b11000000 => {
             let new_program_number = match read_bytes_at(data, i, 1) {
                 Ok(p) => p[0],
-                Err(e) => return Err(ParsingError {
-                    position: *i,
-                    message: format!("Not enough data to read MidiEvent[ProgramChange].new_program_number\n{}", e)
-                })
+                Err(e) => return Err(e.with_msg("Not enough data to read MidiEvent[ProgramChange].new_program_number"))
             };
 
             Ok(midi_event::MidiEvent::ProgramChange { channel, new_program_number })
@@ -121,10 +94,7 @@ fn parse_midi_event_channel_voice_message_at(data: &[u8], i: &mut usize, event_c
         0b11010000 => {
             let pressure_value = match read_bytes_at(data, i, 1) {
                 Ok(p) => p[0],
-                Err(e) => return Err(ParsingError {
-                    position: *i,
-                    message: format!("Not enough data to read MidiEvent[ChannelPressure].pressure_value\n{}", e)
-                })
+                Err(e) => return Err(e.with_msg("Not enough data to read MidiEvent[ChannelPressure].pressure_value"))
             };
 
             Ok(midi_event::MidiEvent::ChannelPressure { channel, pressure_value })
@@ -133,23 +103,20 @@ fn parse_midi_event_channel_voice_message_at(data: &[u8], i: &mut usize, event_c
         0b11100000 => {
             let pitch_wheel_value = match read_bytes_at(data, i, 2) {
                 Ok(w) => ((w[1] as u16) << 7) | (w[0] as u16),
-                Err(e) => return Err(ParsingError {
-                    position: *i,
-                    message: format!("Not enough data to read MidiEvent[PitchWheelChange].key\n{}", e)
-                })
+                Err(e) => return Err(e.with_msg("Not enough data to read MidiEvent[PitchWheelChange].key"))
             };
 
             Ok(midi_event::MidiEvent::PitchWheelChange { channel, pitch_wheel_value })
         },
 
-        code => Err(ParsingError {
+        code => Err(err::MIDIParsingError::UndefinedMidiEvent {
             position: *i,
-            message: format!("Midi event code not defined - {} ({:b} | {:X})", code, code, code)
+            code
         })
     }
 }
 
-fn parse_midi_event_system_common_or_real_time_message_at(data: &[u8], i: &mut usize, event_code: u8) -> Result<midi_event::MidiEvent, ParsingError> {
+fn parse_midi_event_system_common_or_real_time_message_at(data: &[u8], i: &mut usize, event_code: u8) -> Result<midi_event::MidiEvent, err::MIDIParsingError> {
     match event_code {
 
         // System Common Messages
@@ -157,19 +124,13 @@ fn parse_midi_event_system_common_or_real_time_message_at(data: &[u8], i: &mut u
         0b11110000 => {
             let manufacturer_id = match read_bytes_at(data, i, 1) {
                 Ok(id) => id[0],
-                Err(e) => return Err(ParsingError {
-                    position: *i,
-                    message: format!("Not enough data to read MidiEvent[SystemExclusive].manufacrurer_id\n{}", e)
-                })
+                Err(e) => return Err(e.with_msg("Not enough data to read MidiEvent[SystemExclusive].manufacrurer_id"))
             };
             let mut event_data = Vec::<u8>::new();
             loop {
                 let byte = match read_bytes_at(data, i, 1) {
                     Ok(id) => id[0],
-                    Err(e) => return Err(ParsingError {
-                        position: *i,
-                        message: format!("Not enough data to read MidiEvent.data[{}]\n{}", event_data.len(), e)
-                    })
+                    Err(e) => return Err(e.with_msg(format!("Not enough data to read MidiEvent.data[{}]", event_data.len()).as_str()))
                 };
 
                 // "End of Exclusive" message
@@ -188,10 +149,7 @@ fn parse_midi_event_system_common_or_real_time_message_at(data: &[u8], i: &mut u
         0b11110010 => {
             let midi_beats_since_start = match read_bytes_at(data, i, 2) {
                 Ok(b) => ((b[1] as u16) << 7) | (b[0] as u16),
-                Err(e) => return Err(ParsingError {
-                    position: *i,
-                    message: format!("Not enough data to read MidiEvent[SongPositionPointer].midi_beats_since_start\n{}", e)
-                })
+                Err(e) => return Err(e.with_msg("Not enough data to read MidiEvent[SongPositionPointer].midi_beats_since_start"))
             };
 
             Ok(midi_event::MidiEvent::SongPositionPointer { midi_beats_since_start })
@@ -200,10 +158,7 @@ fn parse_midi_event_system_common_or_real_time_message_at(data: &[u8], i: &mut u
         0b11110011 => {
             let song = match read_bytes_at(data, i, 1) {
                 Ok(s) => s[0],
-                Err(e) => return Err(ParsingError {
-                    position: *i,
-                    message: format!("Not enough data to read MidiEvent[SongSelect].song\n{}", e)
-                })
+                Err(e) => return Err(e.with_msg("Not enough data to read MidiEvent[SongSelect].song"))
             };
 
             Ok(midi_event::MidiEvent::SongSelect { song })
@@ -249,18 +204,18 @@ fn parse_midi_event_system_common_or_real_time_message_at(data: &[u8], i: &mut u
             Ok(midi_event::MidiEvent::Reset)
         }
 
-        code => return Err(ParsingError {
+        code => return Err(err::MIDIParsingError::UndefinedMidiEvent {
             position: *i,
-            message: format!("Midi event code not defined - {} ({:b} | {:X})", code, code, code)
+            code
         })
 
     }
 }
 
-pub fn parse_midi_event_at(data: &[u8], i: &mut usize) -> Result<midi_event::MidiEvent, ParsingError> {
+pub fn parse_midi_event_at(data: &[u8], i: &mut usize) -> Result<midi_event::MidiEvent, err::MIDIParsingError> {
     let event_code = match read_bytes_at(data, i, 1) {
         Ok(c) => c[0],
-        Err(e) => panic!("Not enough data to read MidiEvent.event_code\n{}", e)
+        Err(e) => return Err(e.with_msg("Not enough data to read MidiEvent.event_code"))
     };
 
     if event_code & 0b11110000 != 0b11110000 { // Channel Voice Messages are only up to 0b1111nnnn

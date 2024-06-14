@@ -5,6 +5,7 @@
 //! GitHub repo: https://github.com/Ex-ce-pt/midi-parser-rs
 
 mod util;
+mod err;
 mod event_parser;
 pub mod elements;
 
@@ -12,44 +13,32 @@ use util::*;
 use event_parser::*;
 use elements::chunk;
 
-fn parse_header_at(data: &[u8], i: &mut usize) -> Result<chunk::Chunk, ParsingError> {
+fn parse_header_at(data: &[u8], i: &mut usize) -> Result<chunk::Chunk, err::MIDIParsingError> {
     
     // Format
     let midi_file_format_raw = match read_bytes_at(data, i, 2) {
         Ok(f) => f,
-        Err(e) => return Err(ParsingError {
-            position: *i,
-            message: format!("Not enough data to read MThd.format\n{}", e)
-        })
+        Err(e) => return Err(e.with_msg("Not enough data to read MThd.format"))
     };
     let midi_file_format_idx = u16::from_be_bytes(midi_file_format_raw.try_into().unwrap());
     let midi_file_format = match midi_file_format_idx {
         0 => chunk::MidiFileFormat::SingleTrack,
         1 => chunk::MidiFileFormat::SimultaneousTracks,
         2 => chunk::MidiFileFormat::SequentialTracks,
-        _ => return Err(ParsingError {
-            position: *i,
-            message: format!("Undefined MIDI file format: {}\nThe file format can only be 0, 1 or 2", midi_file_format_idx)
-        })
+        _ => return Err(err::MIDIParsingError::UndefinedMidiFileFormat { found: midi_file_format_idx })
     };
 
     // Number of tracks
     let number_of_tracks_raw = match read_bytes_at(data, i, 2) {
         Ok(n) => n,
-        Err(e) => return Err(ParsingError {
-            position: *i,
-            message: format!("Not enough data to read MThd.number_of_tracks\n{}", e)
-        })
+        Err(e) => return Err(e.with_msg("Not enough data to read MThd.number_of_tracks"))
     };
     let number_of_tracks = u16::from_be_bytes(number_of_tracks_raw.try_into().unwrap());
 
     // Number of tracks
     let division_raw = match read_bytes_at(data, i, 2) {
         Ok(d) => d,
-        Err(e) => return Err(ParsingError {
-            position: *i,
-            message: format!("Not enough data to read MThd.division\n{}", e)
-        })
+        Err(e) => return Err(e.with_msg("Not enough data to read MThd.division"))
     };
     let division_word = u16::from_be_bytes(division_raw.try_into().unwrap());
     let division: chunk::Division;
@@ -67,10 +56,10 @@ fn parse_header_at(data: &[u8], i: &mut usize) -> Result<chunk::Chunk, ParsingEr
     })
 }
 
-fn parse_track_event_at(data: &[u8], i: &mut usize) -> Result<chunk::TrackEvent, ParsingError> {
+fn parse_track_event_at(data: &[u8], i: &mut usize) -> Result<chunk::TrackEvent, err::MIDIParsingError> {
     let delta_time = match parse_variable_length_at(data, i) {
         Ok(dt) => dt,
-        Err(e) => panic!("Not enough data to read TrackEvent.delta_time\n{}", e)
+        Err(e) => return Err(e.with_msg("Not enough data to read TrackEvent.delta_time"))
     };
     
     // Try parsing a meta-event
@@ -95,7 +84,7 @@ fn parse_track_event_at(data: &[u8], i: &mut usize) -> Result<chunk::TrackEvent,
     }
 }
 
-fn parse_track_at(data: &[u8], i: &mut usize, length: usize) -> Result<chunk::Chunk, ParsingError> {
+fn parse_track_at(data: &[u8], i: &mut usize, length: usize) -> Result<chunk::Chunk, err::MIDIParsingError> {
 
     let i_at_chunk_data_start = *i;
     let mut events = Vec::<chunk::TrackEvent>::new();
@@ -129,7 +118,7 @@ fn parse_track_at(data: &[u8], i: &mut usize, length: usize) -> Result<chunk::Ch
 ///     Err(e) => panic!("{}", e)
 /// };
 /// ```
-pub fn parse_midi_file(data: &[u8]) -> Result<chunk::MidiFile, ParsingError> {
+pub fn parse_midi_file(data: &[u8]) -> Result<chunk::MidiFile, err::MIDIParsingError> {
     // Iterator
     let mut i: usize = 0;
     
@@ -140,28 +129,22 @@ pub fn parse_midi_file(data: &[u8]) -> Result<chunk::MidiFile, ParsingError> {
         // Chunk type
         let chunk_type_raw = match read_bytes_at(data, &mut i, 4) {
             Ok(t) => t,
-            Err(e) => return Err(ParsingError {
-                position: i,
-                message: format!("Not enough data to read MTrk.chunk_type\n{}", e)
-            })
+            Err(e) => return Err(e.with_msg("Not enough data to read MTrk.chunk_type"))
         };
 
         // Length
         let chunk_length_raw = match read_bytes_at(data, &mut i, 4) {
             Ok(l) => l,
-            Err(e) => return Err(ParsingError {
-                position: i,
-                message: format!("Not enough data to read MTrk.length\n{}", e)
-            })
+            Err(e) => return Err(e.with_msg("Not enough data to read MTrk.length"))
         };
         let chunk_length = u32::from_be_bytes(chunk_length_raw.try_into().unwrap()) as usize;
 
         match chunk_type_raw {
             b"MThd" => {
                 if chunk_length != chunk::MTHD_LENGTH {
-                    return Err(ParsingError {
-                        position: i,
-                        message: format!("The length of the header was not equal the expected one\nExpected: {}B\nFound: {}B", chunk::MTHD_LENGTH, chunk_length)
+                    return Err(err::MIDIParsingError::WrongHeaderSize {
+                        expected: chunk::MTHD_LENGTH, 
+                        found: chunk_length
                     });
                 }
                 header = match parse_header_at(data, &mut i) {

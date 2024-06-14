@@ -5,6 +5,7 @@ use std::fmt::{Debug, Display, Formatter};
 // use std::result;
 
 use super::key_signature::KeySignature;
+use super::super::err;
 
 /// Total number of keys in 12 tone equal temperament.
 pub const NUMBER_OF_KEYS: u8 = 12;
@@ -149,9 +150,9 @@ impl KeyName {
     /// Attempts to convert the MIDI representation of a key into a tuple `(KeyName, i8)`, where the first entry is the key name and the second entry is the octave.
     /// 
     /// For an opposite operation, see `KeyName::try_into_midi_keycode`.
-    pub fn try_from_midi_keycode(value: u8) -> Result<(Self, i8), ()> {
+    pub fn try_from_midi_keycode(value: u8) -> Result<(Self, i8), err::ConvertionError> {
         if value > 127 {
-            return Err(());
+            return Err(err::ConvertionError(format!("Could not convert the value into KeyName: {} > 127", value)));
         }
         
         let keyname = KeyName::try_from_index(value % 12).unwrap();
@@ -163,9 +164,9 @@ impl KeyName {
     /// Attempts to convert the given `KeyName` into a MIDI representation using the octave the key is on.
     /// 
     /// For an opposite operation, see `KeyName::try_from_midi_keycode`.
-    pub fn try_into_midi_keycode(&self, octave: i8) -> Result<u8, ()> {
+    pub fn try_into_midi_keycode(&self, octave: i8) -> Result<u8, err::ConvertionError> {
         if octave < -1 || octave > 9 || (octave == 9 && self.into_index() > Self::G.into_index()) {
-            return Err(());
+            return Err(err::ConvertionError(format!("Could not convert KeyName to the MIDI value: {}{} is out of bounds of possible values.", self, octave)));
         }
         
         Ok((octave + 1) as u8 * NUMBER_OF_KEYS + self.into_index() as u8)

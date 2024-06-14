@@ -5,6 +5,7 @@ use std::fmt::{Debug, Display, Formatter};
 use std::result;
 
 use super::keyname::KeyName;
+use super::super::err;
 
 /// A struct representing the key signature (scale) of a song or a section of a song. Only major and minor scales are supported.
 #[derive(Clone, Copy, PartialEq)]
@@ -102,12 +103,12 @@ impl Display for KeySignature {
 }
 
 impl TryFrom<&str> for KeySignature {
-    type Error = ();
+    type Error = err::ConvertionError;
     
     fn try_from(value: &str) -> result::Result<Self, Self::Error> {
         let trimmed_name = value.trim();
         if trimmed_name.len() == 0 {
-            return Err(());
+            return Err(err::ConvertionError(String::from("The provided string is either empty or consists only of whitespaces.")));
         }
         
         let last_char = trimmed_name.bytes().nth(trimmed_name.len() - 1).unwrap() as char;
@@ -123,7 +124,7 @@ impl TryFrom<&str> for KeySignature {
         
         let keyname: Option<KeyName> = KeyName::try_from_name(isolated_keyname);
         if keyname.is_none() {
-            return Err(());
+            return Err(err::ConvertionError(format!("Could not determine the name of the key: {}", isolated_keyname)));
         }
         
         Ok(KeySignature {
