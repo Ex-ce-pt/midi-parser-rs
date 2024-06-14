@@ -35,13 +35,13 @@ impl KeySignature {
 impl KeySignature {
     
     /// Attempts to convert a MIDI representation of a time signature into the `KeySignature` object.
-    pub fn try_from_midi_msg(value: [u8; 2]) -> Result<Self, ()> {
+    pub fn try_from_midi_msg(value: [u8; 2]) -> Result<Self, err::ConvertionError> {
         let sharps_flats = value[0] as i8;
         
         let minor = match value[1] {
             0 => false,
             1 => true,
-            _ => return Err(())
+            _ => return Err(err::ConvertionError(format!("The scale type is {}, only 0 (major) and 1 (minor) are permitted", value[1])))
         };
         
         // Using the circle of fifths found on the Internet
@@ -77,7 +77,7 @@ impl KeySignature {
             (7, false)  => panic!("Although the key signature with 7 sharps is allowed, it is yet undefined in this library."),
             (7, true)   => panic!("Although the key signature with 7 sharps is allowed, it is yet undefined in this library."),
             
-            _ => return Err(()),
+            _ => return Err(err::ConvertionError(format!("No scale found with {} {}s", sharps_flats.abs(), if sharps_flats > 0 { "sharp" } else { "flat" }))),
         };
         
         Ok(Self {

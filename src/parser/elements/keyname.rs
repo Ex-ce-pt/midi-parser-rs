@@ -80,8 +80,8 @@ impl KeyName {
     /// Attempts to convert a name of the key (e.g. G, F#, Ab) into `KeyName`.
     /// 
     /// For an opposite operation, see `KeyName::into_str`.
-    pub fn try_from_name(name: &str) -> Option<Self> {
-        match name {
+    pub fn try_from_name<T: AsRef<str>>(name: T) -> Option<Self> {
+        match name.as_ref() {
             "B#" => Some(Self::C),
             "C"  => Some(Self::C),
             "C#" => Some(Self::CSharp),

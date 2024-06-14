@@ -32,12 +32,10 @@ pub enum MIDIParsingError {
 
 impl MIDIParsingError {
 
-    pub fn with_msg(self, msg: &str) -> Self {
+    pub fn with_msg<T: AsRef<str>>(self, msg: T) -> Self {
         match self {
-            Self::EOFError { position, tried_to_read, buffer_size, message: _ } => Self::EOFError { position, tried_to_read, buffer_size, message: String::from(msg) },
-            Self::UndefinedMidiEvent { position, code } => Self::UndefinedMidiEvent { position, code },
-            Self::UndefinedMidiFileFormat { found } => Self::UndefinedMidiFileFormat { found },
-            Self::WrongHeaderSize { expected, found } => Self::WrongHeaderSize { expected, found },
+            Self::EOFError { position, tried_to_read, buffer_size, message: _ } => Self::EOFError { position, tried_to_read, buffer_size, message: String::from(msg.as_ref()) },
+            _ => self
         }
     }
 
