@@ -7,8 +7,10 @@ use std::result;
 use super::keyname::KeyName;
 use super::super::err;
 
+// TODO: add other scales
+
 /// A struct representing the key signature (scale) of a song or a section of a song. Only major and minor scales are supported.
-#[derive(Clone, Copy, PartialEq)]
+#[derive(Debug, Clone, Copy, PartialEq)]
 pub struct KeySignature {
     /// The root key of the scale.
     pub key: KeyName,
@@ -89,12 +91,6 @@ impl KeySignature {
 }
 
 // Traits
-
-impl Debug for KeySignature {
-    fn fmt(&self, f: &mut Formatter<'_>) -> fmt::Result {
-        write!(f, "{}", self)
-    }
-}
 
 impl Display for KeySignature {
     fn fmt(&self, f: &mut Formatter<'_>) -> fmt::Result {

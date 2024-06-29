@@ -634,7 +634,11 @@ MidiFile {
             ],
         ),
     ],
-}                    velocity: 0,
+} event: Midi(
+                        NoteOff {
+                            channel: 0,
+                            key: 79,
+                            velocity: 0,
                         },
                     ),
                 },
@@ -30346,7 +30350,7 @@ MidiFile {
                 },
             ],
         ),
-        MTrk(
+        Track(
             [
                 TrackEvent {
                     delta_time: 0,
@@ -53444,9 +53448,6 @@ MidiFile {
                     ),
                 },
             ],
-        ),
-    ],
-}      ],
         ),
     ],
 }
