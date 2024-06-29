@@ -11,6 +11,12 @@ pub enum MidiFileFormat {
     SequentialTracks
 }
 
+impl Default for MidiFileFormat {
+    fn default() -> Self {
+        Self::SingleTrack
+    }
+}
+
 /// An enum relating the time passed during the playback to the length of the musical notes.
 /// 
 /// Only `TicksPerQuarterNote` is supported.
@@ -24,6 +30,12 @@ pub enum Division {
     SMPTE {
         format: u8,
         ticks_per_frame: u8
+    }
+}
+
+impl Default for Division {
+    fn default() -> Self {
+        Self::TicksPerQuarterNote(96)
     }
 }
 
@@ -43,40 +55,40 @@ pub struct TrackEvent {
     pub event: TrackEventType
 }
 
-/// An enum defining a type of a chunk, a larger piece of information in a MIDI file.
+// #[derive(Debug)]
+// pub enum Chunk {
+//     /// A header chunk.
+//     MThd {
+//         format: MidiFileFormat,
+//         number_of_tracks: u16,
+//         division: Division
+//     },
+
+//     /// A track chunk.
+//     MTrk(Vec<TrackEvent>)
+// }
+
+/// A struct defining the header chunk (MThd) of a MIDI file.
+#[derive(Debug, Default)]
+pub struct Header {
+    pub format: MidiFileFormat,
+    pub number_of_tracks: u16,
+    pub division: Division
+}
+
+/// A tuple struct defining a track chunk (MTrk).
 /// 
-/// There are 2 types of chunks: header chunks (MThd) and track chunks (MTrk).
-#[derive(Debug)]
-pub enum Chunk {
-    /// A header chunk.
-    MThd {
-        format: MidiFileFormat,
-        number_of_tracks: u16,
-        division: Division
-    },
-
-    /// A track chunk.
-    MTrk(Vec<TrackEvent>)
-}
-
-impl Chunk {
-    /// Returns a defaukt configuration for a header chunk.
-    pub fn default_header() -> Self {
-        Self::MThd {
-            format: MidiFileFormat::SingleTrack,
-            number_of_tracks: 1,
-            division: Division::TicksPerQuarterNote(96)
-        }
-    }
-}
+/// The only element of the tuple is a vec of all the events in this track in sequence.
+#[derive(Debug, Default)]
+pub struct Track(pub Vec<TrackEvent>);
 
 /// A struct defining a MIDI file.
 /// 
 /// Consists of a header chunk and a vec of track chunks.
-#[derive(Debug)]
+#[derive(Debug, Default)]
 pub struct MidiFile {
-    pub header: Chunk,
-    pub tracks: Vec<Chunk>
+    pub header: Header,
+    pub tracks: Vec<Track>
 }
 
 impl std::fmt::Display for MidiFile {
@@ -87,8 +99,8 @@ impl std::fmt::Display for MidiFile {
 
 impl MidiFile {
 
-    pub fn get_events_at(&self, t1: u8, t2: u8) {
-
+    pub fn get_events_between(&self, t1: u8, t2: u8) {
+        todo!();
     }
 
 }

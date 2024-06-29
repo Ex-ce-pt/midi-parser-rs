@@ -13,7 +13,7 @@ use util::*;
 use event_parser::*;
 use elements::chunk;
 
-fn parse_header_at(data: &[u8], i: &mut usize) -> Result<chunk::Chunk, err::MIDIParsingError> {
+fn parse_header_at(data: &[u8], i: &mut usize) -> Result<chunk::Header, err::MIDIParsingError> {
     
     // Format
     let midi_file_format_raw = match read_bytes_at(data, i, 2) {
@@ -49,7 +49,7 @@ fn parse_header_at(data: &[u8], i: &mut usize) -> Result<chunk::Chunk, err::MIDI
         unimplemented!();
     }
 
-    Ok(chunk::Chunk::MThd {
+    Ok(chunk::Header {
         format: midi_file_format,
         number_of_tracks,
         division
@@ -84,7 +84,7 @@ fn parse_track_event_at(data: &[u8], i: &mut usize) -> Result<chunk::TrackEvent,
     }
 }
 
-fn parse_track_at(data: &[u8], i: &mut usize, length: usize) -> Result<chunk::Chunk, err::MIDIParsingError> {
+fn parse_track_at(data: &[u8], i: &mut usize, length: usize) -> Result<chunk::Track, err::MIDIParsingError> {
 
     let i_at_chunk_data_start = *i;
     let mut events = Vec::<chunk::TrackEvent>::new();
@@ -97,7 +97,7 @@ fn parse_track_at(data: &[u8], i: &mut usize, length: usize) -> Result<chunk::Ch
         }
     }
 
-    Ok(chunk::Chunk::MTrk(events))
+    Ok(chunk::Track(events))
 }
 
 /// A function for parsing the contents of a MIDI file into a `MidiFile` struct.
@@ -122,8 +122,8 @@ pub fn parse_midi_file(data: &[u8]) -> Result<chunk::MidiFile, err::MIDIParsingE
     // Iterator
     let mut i: usize = 0;
     
-    let mut header: chunk::Chunk = chunk::Chunk::default_header();
-    let mut tracks = Vec::<chunk::Chunk>::new();
+    let mut header: chunk::Header = chunk::Header::default();
+    let mut tracks = Vec::<chunk::Track>::new();
 
     while i < data.len() {
         // Chunk type

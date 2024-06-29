@@ -1,5 +1,5 @@
 MidiFile {
-    header: MThd {
+    header: Header {
         format: SimultaneousTracks,
         number_of_tracks: 3,
         division: TicksPerQuarterNote(
@@ -7,7 +7,7 @@ MidiFile {
         ),
     },
     tracks: [
-        MTrk(
+        Track(
             [
                 TrackEvent {
                     delta_time: 0,
@@ -28,7 +28,7 @@ MidiFile {
                 },
             ],
         ),
-        MTrk(
+        Track(
             [
                 TrackEvent {
                     delta_time: 0,
@@ -46,7 +46,7 @@ MidiFile {
                 },
             ],
         ),
-        MTrk(
+        Track(
             [
                 TrackEvent {
                     delta_time: 0,
@@ -634,7 +634,7 @@ MidiFile {
             ],
         ),
     ],
-}                         velocity: 0,
+}                    velocity: 0,
                         },
                     ),
                 },
