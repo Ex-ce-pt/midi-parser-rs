@@ -55,19 +55,6 @@ pub struct TrackEvent {
     pub event: TrackEventType
 }
 
-// #[derive(Debug)]
-// pub enum Chunk {
-//     /// A header chunk.
-//     MThd {
-//         format: MidiFileFormat,
-//         number_of_tracks: u16,
-//         division: Division
-//     },
-
-//     /// A track chunk.
-//     MTrk(Vec<TrackEvent>)
-// }
-
 /// A struct defining the header chunk (MThd) of a MIDI file.
 #[derive(Debug, Default)]
 pub struct Header {

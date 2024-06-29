@@ -24,6 +24,7 @@ fn main() {
         panic!("{}", e);
     }
 
+    // API call
     let midi_file = match parser::parse_midi_file(&buf) {
         Ok(f) => f,
         Err(e) => panic!("{}", e)

@@ -11,9 +11,9 @@ pub mod elements;
 
 use util::*;
 use event_parser::*;
-use elements::chunk;
+use elements::midi_file;
 
-fn parse_header_at(data: &[u8], i: &mut usize) -> Result<chunk::Header, err::MIDIParsingError> {
+fn parse_header_at(data: &[u8], i: &mut usize) -> Result<midi_file::Header, err::MIDIParsingError> {
     
     // Format
     let midi_file_format_raw = match read_bytes_at(data, i, 2) {
@@ -22,9 +22,9 @@ fn parse_header_at(data: &[u8], i: &mut usize) -> Result<chunk::Header, err::MID
     };
     let midi_file_format_idx = u16::from_be_bytes(midi_file_format_raw.try_into().unwrap());
     let midi_file_format = match midi_file_format_idx {
-        0 => chunk::MidiFileFormat::SingleTrack,
-        1 => chunk::MidiFileFormat::SimultaneousTracks,
-        2 => chunk::MidiFileFormat::SequentialTracks,
+        0 => midi_file::MidiFileFormat::SingleTrack,
+        1 => midi_file::MidiFileFormat::SimultaneousTracks,
+        2 => midi_file::MidiFileFormat::SequentialTracks,
         _ => return Err(err::MIDIParsingError::UndefinedMidiFileFormat { found: midi_file_format_idx })
     };
 
@@ -41,22 +41,22 @@ fn parse_header_at(data: &[u8], i: &mut usize) -> Result<chunk::Header, err::MID
         Err(e) => return Err(e.with_msg("Not enough data to read MThd.division"))
     };
     let division_word = u16::from_be_bytes(division_raw.try_into().unwrap());
-    let division: chunk::Division;
+    let division: midi_file::Division;
     if (division_word & (1 << 15)) == 0 {
-        division = chunk::Division::TicksPerQuarterNote(division_word);
+        division = midi_file::Division::TicksPerQuarterNote(division_word);
     } else {
         // division = chunk::Division::SMPTE(((division_word & 0xFF00) >> 8) as i8, (division_word & 0xFF) as u8);
         unimplemented!();
     }
 
-    Ok(chunk::Header {
+    Ok(midi_file::Header {
         format: midi_file_format,
         number_of_tracks,
         division
     })
 }
 
-fn parse_track_event_at(data: &[u8], i: &mut usize) -> Result<chunk::TrackEvent, err::MIDIParsingError> {
+fn parse_track_event_at(data: &[u8], i: &mut usize) -> Result<midi_file::TrackEvent, err::MIDIParsingError> {
     let delta_time = match parse_variable_length_at(data, i) {
         Ok(dt) => dt,
         Err(e) => return Err(e.with_msg("Not enough data to read TrackEvent.delta_time"))
@@ -67,27 +67,27 @@ fn parse_track_event_at(data: &[u8], i: &mut usize) -> Result<chunk::TrackEvent,
     let meta_event_maybe = try_parse_meta_event(data, i);
 
     if let Some(meta_event) = meta_event_maybe {
-        return Ok(chunk::TrackEvent {
+        return Ok(midi_file::TrackEvent {
             delta_time,
-            event: chunk::TrackEventType::Meta(meta_event)
+            event: midi_file::TrackEventType::Meta(meta_event)
         })
     }
 
     // Try parsing a midi-event
     
     match parse_midi_event_at(data, i) {
-        Ok(event) => Ok(chunk::TrackEvent {
+        Ok(event) => Ok(midi_file::TrackEvent {
             delta_time,
-            event: chunk::TrackEventType::Midi(event)
+            event: midi_file::TrackEventType::Midi(event)
         }),
         Err(e) => Err(e)
     }
 }
 
-fn parse_track_at(data: &[u8], i: &mut usize, length: usize) -> Result<chunk::Track, err::MIDIParsingError> {
+fn parse_track_at(data: &[u8], i: &mut usize, length: usize) -> Result<midi_file::Track, err::MIDIParsingError> {
 
     let i_at_chunk_data_start = *i;
-    let mut events = Vec::<chunk::TrackEvent>::new();
+    let mut events = Vec::<midi_file::TrackEvent>::new();
 
     while *i < i_at_chunk_data_start + length {
         let event_maybe = parse_track_event_at(data, i);
@@ -97,7 +97,7 @@ fn parse_track_at(data: &[u8], i: &mut usize, length: usize) -> Result<chunk::Tr
         }
     }
 
-    Ok(chunk::Track(events))
+    Ok(midi_file::Track(events))
 }
 
 /// A function for parsing the contents of a MIDI file into a `MidiFile` struct.
@@ -118,12 +118,12 @@ fn parse_track_at(data: &[u8], i: &mut usize, length: usize) -> Result<chunk::Tr
 ///     Err(e) => panic!("{}", e)
 /// };
 /// ```
-pub fn parse_midi_file(data: &[u8]) -> Result<chunk::MidiFile, err::MIDIParsingError> {
+pub fn parse_midi_file(data: &[u8]) -> Result<midi_file::MidiFile, err::MIDIParsingError> {
     // Iterator
     let mut i: usize = 0;
     
-    let mut header: chunk::Header = chunk::Header::default();
-    let mut tracks = Vec::<chunk::Track>::new();
+    let mut header: midi_file::Header = midi_file::Header::default();
+    let mut tracks = Vec::<midi_file::Track>::new();
 
     while i < data.len() {
         // Chunk type
@@ -141,9 +141,9 @@ pub fn parse_midi_file(data: &[u8]) -> Result<chunk::MidiFile, err::MIDIParsingE
 
         match chunk_type_raw {
             b"MThd" => {
-                if chunk_length != chunk::MTHD_LENGTH {
+                if chunk_length != midi_file::MTHD_LENGTH {
                     return Err(err::MIDIParsingError::WrongHeaderSize {
-                        expected: chunk::MTHD_LENGTH, 
+                        expected: midi_file::MTHD_LENGTH, 
                         found: chunk_length
                     });
                 }
@@ -166,7 +166,7 @@ pub fn parse_midi_file(data: &[u8]) -> Result<chunk::MidiFile, err::MIDIParsingE
         }
     }
 
-    Ok(chunk::MidiFile {
+    Ok(midi_file::MidiFile {
         header,
         tracks
     })
