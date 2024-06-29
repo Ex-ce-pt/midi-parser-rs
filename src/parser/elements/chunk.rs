@@ -34,7 +34,9 @@ pub enum TrackEventType {
     Meta(meta_event::MetaEvent)
 }
 
-/// A struct defining a track event. Consists of a delta time and a `TrackEventType`.
+/// A struct defining a track event.
+/// 
+/// Consists of a delta time and a `TrackEventType`.
 #[derive(Debug)]
 pub struct TrackEvent {
     pub delta_time: u32,
@@ -42,6 +44,7 @@ pub struct TrackEvent {
 }
 
 /// An enum defining a type of a chunk, a larger piece of information in a MIDI file.
+/// 
 /// There are 2 types of chunks: header chunks (MThd) and track chunks (MTrk).
 #[derive(Debug)]
 pub enum Chunk {
@@ -68,6 +71,7 @@ impl Chunk {
 }
 
 /// A struct defining a MIDI file.
+/// 
 /// Consists of a header chunk and a vec of track chunks.
 #[derive(Debug)]
 pub struct MidiFile {
@@ -79,4 +83,12 @@ impl std::fmt::Display for MidiFile {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         write!(f, "{:#?}", self)
     }
+}
+
+impl MidiFile {
+
+    pub fn get_events_at(&self, t1: u8, t2: u8) {
+
+    }
+
 }

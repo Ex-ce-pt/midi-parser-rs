@@ -1,5 +1,8 @@
 use super::err;
 
+// Max length of a variable length value in MIDI files: 4B
+pub const MAX_VARIABLE_LENGTH_VALUE_SIZE: usize = 4;
+
 pub fn read_bytes_at<'a>(data: &'a [u8], i: &mut usize, count: usize) -> Result<&'a [u8], err::MIDIParsingError> {
     if *i + count > data.len() {
         return Err(err::MIDIParsingError::EOFError {
@@ -21,8 +24,7 @@ pub fn parse_variable_length_at(data: &[u8], i: &mut usize) -> Result<u32, err::
     
     for (byte_idx, byte) in data[*i..].iter().enumerate() {
 
-        // Max length of a variable length value in MIDI files: 4B
-        if byte_idx == 4 {
+        if byte_idx == MAX_VARIABLE_LENGTH_VALUE_SIZE {
             break;
         }
 
